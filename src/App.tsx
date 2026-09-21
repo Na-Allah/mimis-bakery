@@ -105,7 +105,7 @@ const AppShell: React.FC = () => {
   // Strict Authentication Gate: Users can only start viewing pages only if they sign in
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-stone-950 text-stone-100">
+      <div className="min-h-screen bg-[#FFF8ED] text-[#111827]">
         <AuthScreen />
         <ToastContainer />
       </div>
@@ -113,7 +113,7 @@ const AppShell: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-stone-50 text-stone-900 selection:bg-amber-500 selection:text-white">
+    <div className="flex flex-col min-h-screen bg-[#FFF8ED] text-[#111827] selection:bg-[#C8102E] selection:text-white">
       <Navbar />
       <div className="flex-1">
         <MainContent />
