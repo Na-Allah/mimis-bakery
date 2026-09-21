@@ -16,7 +16,6 @@ export const MenuBrowser: React.FC<MenuBrowserProps> = ({
     activeSections,
     categories,
     activeProducts,
-    navigateTo,
   } = useRestaurant();
 
   const [selectedSectionSlug, setSelectedSectionSlug] = useState<string>(
@@ -99,51 +98,53 @@ export const MenuBrowser: React.FC<MenuBrowserProps> = ({
   const getSectionIcon = (slug: string) => {
     switch (slug) {
       case 'meat-grill':
-        return <Flame className="w-4 h-4 text-amber-500" />;
+        return <Flame className="w-4 h-4" />;
       case 'bakery':
-        return <Croissant className="w-4 h-4 text-amber-600" />;
+        return <Croissant className="w-4 h-4" />;
       case 'food-drinks':
-        return <UtensilsCrossed className="w-4 h-4 text-orange-500" />;
+        return <UtensilsCrossed className="w-4 h-4" />;
       default:
         return null;
     }
   };
 
   return (
-    <div id="menu-browser-container" className="py-8 sm:py-12 bg-stone-100/60 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div id="menu-browser-container" className="py-8 sm:py-12 bg-[#FFF8ED]/40 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         {/* Header Title & Subtitle */}
-        <div className="bg-stone-900 text-white rounded-3xl p-6 sm:p-10 border border-stone-800 shadow-xl relative overflow-hidden">
+        <div className="bg-white text-[#111827] rounded-3xl p-6 sm:p-10 border border-[#E5E7EB] shadow-xs relative overflow-hidden">
           <div className="relative z-10 max-w-2xl space-y-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-amber-400">
+            <span className="text-xs font-bold uppercase tracking-widest text-[#C8102E]">
               Kitchen Menus & Offerings
             </span>
-            <h1 className="font-serif-display text-3xl sm:text-5xl font-bold tracking-tight text-white">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#111827]">
               {currentSection ? currentSection.name : 'Complete Restaurant Menu'}
             </h1>
-            <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
+            <p className="text-[#475569] text-sm sm:text-base leading-relaxed">
               {currentSection
                 ? currentSection.description
                 : 'Browse our full catalog spanning artisan bakery loaves, flame-grilled cuts, and refreshing drinks.'}
             </p>
           </div>
           {/* Subtle background flair */}
-          <div className="absolute right-0 bottom-0 top-0 w-1/3 bg-gradient-to-l from-amber-600/10 to-transparent pointer-events-none" />
+          <div className="absolute right-0 bottom-0 top-0 w-1/3 bg-gradient-to-l from-[#FFF8ED] to-transparent pointer-events-none" />
         </div>
 
-        {/* Section Navigation Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-stone-200 scrollbar-none">
+        {/* Section Navigation Tabs - Touch friendly & Mobile First */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-[#E5E7EB] scrollbar-none">
           <button
             id="tab-section-all"
             onClick={() => handleSectionSelect('all')}
-            className={`px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2 ${
+            className={`px-5 py-3 rounded-2xl text-sm font-semibold whitespace-nowrap transition-all flex items-center gap-2 cursor-pointer min-h-[44px] ${
               selectedSectionSlug === 'all'
-                ? 'bg-stone-900 text-amber-400 shadow-md'
-                : 'bg-white text-stone-600 hover:text-stone-900 hover:bg-stone-50 border border-stone-200'
+                ? 'bg-[#C8102E] text-white shadow-xs'
+                : 'bg-white text-[#475569] hover:text-[#111827] hover:bg-[#FFF8ED] border border-[#E5E7EB]'
             }`}
           >
             <span>All Sections</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-stone-800 text-amber-300">
+            <span className={`text-xs px-2 py-0.5 rounded-full ${
+              selectedSectionSlug === 'all' ? 'bg-white/20 text-white' : 'bg-[#FFF8ED] text-[#475569]'
+            }`}>
               {activeProducts.length}
             </span>
           </button>
@@ -160,17 +161,17 @@ export const MenuBrowser: React.FC<MenuBrowserProps> = ({
                 key={sec.id}
                 id={`tab-section-${sec.slug}`}
                 onClick={() => handleSectionSelect(sec.slug)}
-                className={`px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2.5 ${
+                className={`px-5 py-3 rounded-2xl text-sm font-semibold whitespace-nowrap transition-all flex items-center gap-2.5 cursor-pointer min-h-[44px] ${
                   isSelected
-                    ? 'bg-stone-900 text-amber-400 shadow-md'
-                    : 'bg-white text-stone-600 hover:text-stone-900 hover:bg-stone-50 border border-stone-200'
+                    ? 'bg-[#C8102E] text-white shadow-xs'
+                    : 'bg-white text-[#475569] hover:text-[#111827] hover:bg-[#FFF8ED] border border-[#E5E7EB]'
                 }`}
               >
                 {getSectionIcon(sec.slug)}
                 <span>{sec.name}</span>
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full ${
-                    isSelected ? 'bg-stone-800 text-amber-300' : 'bg-stone-100 text-stone-600'
+                    isSelected ? 'bg-white/20 text-white' : 'bg-[#FFF8ED] text-[#475569]'
                   }`}
                 >
                   {count}
@@ -182,14 +183,14 @@ export const MenuBrowser: React.FC<MenuBrowserProps> = ({
 
         {/* Category Pills (Sub-Categories) */}
         {availableCategories.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             <button
               id="pill-cat-all"
               onClick={() => setSelectedCategorySlug('all')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer min-h-[36px] ${
                 selectedCategorySlug === 'all'
-                  ? 'bg-amber-500 text-stone-950 shadow-sm'
-                  : 'bg-stone-200/80 text-stone-700 hover:bg-stone-300'
+                  ? 'bg-[#D4AF37] text-[#1A1A1A] shadow-xs'
+                  : 'bg-white text-[#475569] border border-[#E5E7EB] hover:bg-[#FFF8ED]'
               }`}
             >
               All Categories
@@ -199,10 +200,10 @@ export const MenuBrowser: React.FC<MenuBrowserProps> = ({
                 key={cat.id}
                 id={`pill-cat-filter-${cat.slug}`}
                 onClick={() => setSelectedCategorySlug(cat.slug)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer min-h-[36px] ${
                   selectedCategorySlug === cat.slug
-                    ? 'bg-amber-500 text-stone-950 shadow-sm'
-                    : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
+                    ? 'bg-[#D4AF37] text-[#1A1A1A] shadow-xs'
+                    : 'bg-white text-[#475569] border border-[#E5E7EB] hover:bg-[#FFF8ED]'
                 }`}
               >
                 {cat.name}
@@ -212,22 +213,22 @@ export const MenuBrowser: React.FC<MenuBrowserProps> = ({
         )}
 
         {/* Search & Sort Controls Bar */}
-        <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Live Search Input */}
           <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#9CA3AF] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               id="input-menu-search"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search chicken, suya, bread, jollof..."
-              className="w-full pl-10 pr-9 py-2 rounded-xl text-sm bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500"
+              className="w-full pl-10 pr-9 py-2.5 rounded-xl text-sm bg-[#FFF8ED]/30 border border-[#E5E7EB] focus:outline-none focus:ring-1 focus:ring-[#C8102E] focus:border-[#C8102E] text-[#111827] placeholder-[#9CA3AF] min-h-[44px]"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#111827] cursor-pointer p-1"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -235,18 +236,18 @@ export const MenuBrowser: React.FC<MenuBrowserProps> = ({
           </div>
 
           {/* Result Count and Sort Dropdown */}
-          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 text-xs text-stone-500">
+          <div className="flex items-center justify-between sm:justify-end w-full sm:w-auto gap-4 text-xs text-[#475569]">
             <span className="font-medium">
-              Showing <strong className="text-stone-900">{filteredProducts.length}</strong> items
+              Showing <strong className="text-[#111827]">{filteredProducts.length}</strong> items
             </span>
 
             <div className="flex items-center gap-2">
-              <SlidersHorizontal className="w-3.5 h-3.5 text-stone-400" />
+              <SlidersHorizontal className="w-3.5 h-3.5 text-[#9CA3AF]" />
               <select
                 id="select-menu-sort"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="bg-stone-50 border border-stone-200 text-stone-800 text-xs font-semibold py-1.5 px-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                className="bg-white border border-[#E5E7EB] text-[#111827] text-xs font-semibold py-2 px-3 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#C8102E] min-h-[38px] cursor-pointer"
               >
                 <option value="featured">Featured First</option>
                 <option value="price-asc">Price: Low to High</option>
@@ -268,19 +269,19 @@ export const MenuBrowser: React.FC<MenuBrowserProps> = ({
             ))}
           </div>
         ) : (
-          /* Empty State (Section 56 of spec.md) */
+          /* Empty State */
           <div
             id="menu-empty-state"
-            className="bg-white rounded-3xl p-12 text-center border border-dashed border-stone-300 max-w-lg mx-auto space-y-4 my-12"
+            className="bg-white rounded-3xl p-10 sm:p-12 text-center border border-dashed border-[#E5E7EB] max-w-lg mx-auto space-y-4 my-12"
           >
-            <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mx-auto">
+            <div className="w-14 h-14 rounded-2xl bg-[#FFF8ED] border border-[#E5E7EB] flex items-center justify-center text-[#C8102E] mx-auto">
               <Search className="w-7 h-7" />
             </div>
-            <h3 className="font-serif-display text-xl font-bold text-stone-900">
+            <h3 className="text-xl font-bold text-[#111827]">
               No matching menu items found
             </h3>
-            <p className="text-sm text-stone-500 leading-relaxed">
-              We couldn't find any dishes matching "{searchQuery}". Try searching for another keyword or clear your filters.
+            <p className="text-sm text-[#475569] leading-relaxed">
+              We couldn&apos;t find any dishes matching &quot;{searchQuery}&quot;. Try searching for another keyword or clear your filters.
             </p>
             <button
               id="btn-clear-search-filter"
@@ -289,7 +290,7 @@ export const MenuBrowser: React.FC<MenuBrowserProps> = ({
                 setSelectedSectionSlug('all');
                 setSelectedCategorySlug('all');
               }}
-              className="px-5 py-2.5 rounded-xl bg-stone-900 text-amber-400 font-bold text-xs uppercase tracking-wider hover:bg-stone-800 transition-colors"
+              className="px-5 py-2.5 rounded-xl bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-xs tracking-wider transition-colors cursor-pointer min-h-[44px]"
             >
               Reset All Filters
             </button>

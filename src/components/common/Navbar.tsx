@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
 import {
   ShoppingBag,
-  Flame,
   Menu as MenuIcon,
   X,
   ShieldAlert,
@@ -16,6 +15,7 @@ import {
   PackageCheck,
   ShieldCheck,
 } from 'lucide-react';
+import { BrandLogo } from './BrandLogo';
 
 export const Navbar: React.FC = () => {
   const {
@@ -62,17 +62,17 @@ export const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <header id="main-header" className="sticky top-0 z-40 bg-stone-900/95 backdrop-blur-md text-stone-100 border-b border-stone-800">
+    <header id="main-header" className="sticky top-0 z-40 bg-white/95 backdrop-blur-md text-[#111827] border-b border-[#E5E7EB] shadow-xs">
       {/* Top micro bar for quick restaurant facts */}
-      <div className="bg-stone-950 text-stone-400 text-xs py-1.5 px-4 border-b border-stone-800/60 hidden md:block">
+      <div className="bg-[#FFF8ED] text-[#475569] text-xs py-1.5 px-4 border-b border-[#E5E7EB] hidden md:block">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5 text-stone-300">
-              <MapPin className="w-3.5 h-3.5 text-amber-500" />
+            <span className="flex items-center gap-1.5 text-[#111827]">
+              <MapPin className="w-3.5 h-3.5 text-[#C8102E]" />
               {siteConfig.address}
             </span>
             <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-amber-500" />
+              <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
               {siteConfig.opening_hours}
             </span>
           </div>
@@ -80,12 +80,14 @@ export const Navbar: React.FC = () => {
             <a
               id="topbar-phone"
               href={`tel:${siteConfig.phone.replace(/[^0-9+]/g, '')}`}
-              className="flex items-center gap-1.5 hover:text-amber-400 transition-colors"
+              className="flex items-center gap-1.5 hover:text-[#C8102E] transition-colors"
             >
-              <Phone className="w-3.5 h-3.5 text-amber-500" />
+              <Phone className="w-3.5 h-3.5 text-[#C8102E]" />
               {siteConfig.phone}
             </a>
-            <span className="text-amber-400/80 font-medium">WhatsApp Dispatch Active</span>
+            <span className="text-[#C8102E] font-semibold text-[11px] px-2 py-0.5 rounded-full bg-white border border-[#E5E7EB]">
+              WhatsApp Dispatch Active
+            </span>
           </div>
         </div>
       </div>
@@ -96,19 +98,9 @@ export const Navbar: React.FC = () => {
         <div
           id="brand-logo-container"
           onClick={() => handleNav(() => navigateTo({ type: 'home' }))}
-          className="flex items-center gap-3 cursor-pointer group py-2"
+          className="cursor-pointer group py-2"
         >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-md shadow-amber-950/40 group-hover:scale-105 transition-transform">
-            <Flame className="w-6 h-6" />
-          </div>
-          <div>
-            <span className="font-serif-display text-xl sm:text-2xl font-bold tracking-tight text-white group-hover:text-amber-400 transition-colors">
-              {siteConfig.restaurant_name}
-            </span>
-            <p className="text-xs text-stone-400 tracking-wide hidden sm:block">
-              {siteConfig.tagline}
-            </p>
-          </div>
+          <BrandLogo size="md" showTagline={true} />
         </div>
 
         {/* Desktop Navigation */}
@@ -116,10 +108,10 @@ export const Navbar: React.FC = () => {
           <button
             id="nav-link-home"
             onClick={() => navigateTo({ type: 'home' })}
-            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
               activeView.type === 'home'
-                ? 'text-amber-400 bg-stone-800'
-                : 'text-stone-300 hover:text-white hover:bg-stone-800/60'
+                ? 'text-[#C8102E] bg-[#FFF8ED] font-semibold'
+                : 'text-[#475569] hover:text-[#C8102E] hover:bg-[#FFF8ED]/60'
             }`}
           >
             Home
@@ -128,10 +120,10 @@ export const Navbar: React.FC = () => {
           <button
             id="nav-link-menu-all"
             onClick={() => navigateTo({ type: 'menu' })}
-            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
               activeView.type === 'menu' && !('sectionSlug' in activeView && activeView.sectionSlug)
-                ? 'text-amber-400 bg-stone-800'
-                : 'text-stone-300 hover:text-white hover:bg-stone-800/60'
+                ? 'text-[#C8102E] bg-[#FFF8ED] font-semibold'
+                : 'text-[#475569] hover:text-[#C8102E] hover:bg-[#FFF8ED]/60'
             }`}
           >
             Full Menu
@@ -148,10 +140,10 @@ export const Navbar: React.FC = () => {
                 key={sec.id}
                 id={`nav-link-section-${sec.slug}`}
                 onClick={() => navigateTo({ type: 'menu', sectionSlug: sec.slug })}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
                   isSelected
-                    ? 'text-amber-400 bg-stone-800 font-semibold'
-                    : 'text-stone-400 hover:text-white hover:bg-stone-800/40'
+                    ? 'text-[#C8102E] bg-[#FFF8ED] font-semibold'
+                    : 'text-[#475569] hover:text-[#C8102E] hover:bg-[#FFF8ED]/60'
                 }`}
               >
                 {sec.name}
@@ -162,15 +154,15 @@ export const Navbar: React.FC = () => {
           <button
             id="nav-link-track-order"
             onClick={() => navigateTo({ type: 'track-order' })}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+            className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors relative cursor-pointer ${
               activeView.type === 'track-order'
-                ? 'text-amber-400 bg-stone-800 font-semibold'
-                : 'text-stone-400 hover:text-white hover:bg-stone-800/40'
+                ? 'text-[#C8102E] bg-[#FFF8ED] font-semibold'
+                : 'text-[#475569] hover:text-[#C8102E] hover:bg-[#FFF8ED]/60'
             }`}
           >
             Track Order
             {pendingOrdersCount > 0 && (
-              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-stone-950">
+              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[#D4AF37] text-[#1A1A1A]">
                 {pendingOrdersCount}
               </span>
             )}
@@ -181,15 +173,15 @@ export const Navbar: React.FC = () => {
             <button
               id="nav-link-my-orders"
               onClick={() => navigateTo({ type: 'my-orders' })}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors relative cursor-pointer ${
                 activeView.type === 'my-orders'
-                  ? 'text-amber-400 bg-stone-800 font-semibold'
-                  : 'text-stone-400 hover:text-white hover:bg-stone-800/40'
+                  ? 'text-[#C8102E] bg-[#FFF8ED] font-semibold'
+                  : 'text-[#475569] hover:text-[#C8102E] hover:bg-[#FFF8ED]/60'
               }`}
             >
               My Orders
               {userOrders.length > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-stone-700 text-stone-300">
+                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-[#E5E7EB] text-[#475569]">
                   {userOrders.length}
                 </span>
               )}
@@ -204,14 +196,14 @@ export const Navbar: React.FC = () => {
             <button
               id="nav-btn-admin"
               onClick={() => navigateTo({ type: 'admin' })}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                 activeView.type === 'admin'
-                  ? 'bg-amber-500 text-stone-950 border-amber-400 shadow-md shadow-amber-950/50'
-                  : 'border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
+                  ? 'bg-[#1A1A1A] text-[#D4AF37] border-[#1A1A1A] shadow-sm'
+                  : 'border-[#D4AF37]/60 bg-[#FFF8ED] text-[#1A1A1A] hover:bg-[#D4AF37]/15'
               }`}
               title="Restaurant Admin Portal"
             >
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+              <ShieldAlert className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span>Admin</span>
             </button>
           )}
@@ -222,53 +214,53 @@ export const Navbar: React.FC = () => {
               <button
                 id="nav-btn-user-profile"
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 rounded-xl bg-stone-800/80 hover:bg-stone-800 border border-stone-700/80 transition text-left cursor-pointer"
+                className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 rounded-xl bg-[#FFF8ED] hover:bg-[#FFF8ED]/80 border border-[#E5E7EB] transition text-left cursor-pointer min-h-[44px]"
                 aria-expanded={userDropdownOpen}
                 aria-haspopup="true"
               >
                 <div
-                  className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-extrabold ${
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-extrabold ${
                     isAdmin
-                      ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-stone-950'
-                      : 'bg-stone-700 text-stone-200'
+                      ? 'bg-[#C8102E] text-white'
+                      : 'bg-[#1A1A1A] text-white'
                   }`}
                 >
                   {currentUser.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="hidden sm:block text-left">
-                  <div className="text-xs font-semibold text-stone-200 leading-tight flex items-center gap-1">
+                  <div className="text-xs font-semibold text-[#111827] leading-tight flex items-center gap-1">
                     <span className="truncate max-w-[90px]">{currentUser.name.split(' ')[0]}</span>
                     {isAdmin ? (
-                      <span className="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold uppercase">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#C8102E]/10 text-[#C8102E] font-bold uppercase">
                         Admin
                       </span>
                     ) : (
-                      <span className="text-[9px] px-1 py-0.2 rounded bg-stone-700 text-stone-400 font-semibold uppercase">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#E5E7EB] text-[#475569] font-medium uppercase">
                         User
                       </span>
                     )}
                   </div>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-stone-400" />
+                <ChevronDown className="w-3.5 h-3.5 text-[#9CA3AF]" />
               </button>
 
               {/* User Dropdown Menu */}
               {userDropdownOpen && (
                 <div
                   id="nav-user-dropdown"
-                  className="absolute right-0 mt-2 w-56 bg-stone-900 border border-stone-800 rounded-xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute right-0 mt-2 w-56 bg-white border border-[#E5E7EB] rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
                 >
-                  <div className="px-3 py-2 border-b border-stone-800/80">
-                    <p className="text-xs font-semibold text-stone-100 truncate">{currentUser.name}</p>
-                    <p className="text-[11px] text-stone-400 truncate">{currentUser.email}</p>
+                  <div className="px-3.5 py-2.5 border-b border-[#E5E7EB]">
+                    <p className="text-xs font-semibold text-[#111827] truncate">{currentUser.name}</p>
+                    <p className="text-[11px] text-[#475569] truncate">{currentUser.email}</p>
                     <div className="mt-1.5 flex items-center gap-1.5">
                       {isAdmin ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                          <ShieldCheck className="w-3 h-3 text-amber-400" /> Administrator
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#C8102E]/10 text-[#C8102E] border border-[#C8102E]/20">
+                          <ShieldCheck className="w-3 h-3 text-[#C8102E]" /> Administrator
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-stone-800 text-stone-300 border border-stone-700">
-                          <UserIcon className="w-3 h-3 text-stone-400" /> Customer Account
+                        <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#FFF8ED] text-[#475569] border border-[#E5E7EB]">
+                          <UserIcon className="w-3 h-3 text-[#475569]" /> Customer Account
                         </span>
                       )}
                     </div>
@@ -278,37 +270,36 @@ export const Navbar: React.FC = () => {
                     <button
                       id="dropdown-link-my-orders"
                       onClick={() => handleNav(() => navigateTo({ type: 'my-orders' }))}
-                      className="w-full text-left px-3 py-1.5 text-xs text-stone-300 hover:text-amber-400 hover:bg-stone-800/60 flex items-center justify-between transition"
+                      className="w-full text-left px-3.5 py-2 text-xs text-[#475569] hover:text-[#C8102E] hover:bg-[#FFF8ED] flex items-center justify-between transition cursor-pointer"
                     >
-                      <span className="flex items-center gap-2">
-                        <PackageCheck className="w-3.5 h-3.5 text-amber-500" />
+                      <span className="flex items-center gap-2 font-medium">
+                        <PackageCheck className="w-3.5 h-3.5 text-[#C8102E]" />
                         My Orders
                       </span>
                       {userOrders.length > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-stone-800 text-stone-300 font-bold">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#E5E7EB] text-[#111827] font-bold">
                           {userOrders.length}
                         </span>
                       )}
                     </button>
 
-                    {/* ONLY SHOW ADMIN DASHBOARD OPTION IF USER IS ADMIN */}
                     {isAdmin && (
                       <button
                         id="dropdown-link-admin"
                         onClick={() => handleNav(() => navigateTo({ type: 'admin' }))}
-                        className="w-full text-left px-3 py-1.5 text-xs text-amber-300 hover:text-amber-200 hover:bg-stone-800/60 flex items-center gap-2 font-medium transition"
+                        className="w-full text-left px-3.5 py-2 text-xs text-[#1A1A1A] hover:text-[#C8102E] hover:bg-[#FFF8ED] flex items-center gap-2 font-medium transition cursor-pointer"
                       >
-                        <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                        <ShieldAlert className="w-3.5 h-3.5 text-[#D4AF37]" />
                         Admin Dashboard
                       </button>
                     )}
                   </div>
 
-                  <div className="pt-1 border-t border-stone-800/80">
+                  <div className="pt-1 border-t border-[#E5E7EB]">
                     <button
                       id="dropdown-link-logout"
                       onClick={() => handleNav(logout)}
-                      className="w-full text-left px-3 py-1.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-stone-800/60 flex items-center gap-2 transition"
+                      className="w-full text-left px-3.5 py-2 text-xs text-[#EF4444] hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer font-medium"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       Sign Out
@@ -321,32 +312,32 @@ export const Navbar: React.FC = () => {
             <button
               id="nav-btn-signin"
               onClick={() => openAuthModal('login')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700/80 border border-stone-700/80 text-stone-200 text-xs font-semibold transition cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFF8ED] hover:bg-[#FFF8ED]/80 border border-[#E5E7EB] text-[#111827] text-xs font-semibold transition cursor-pointer min-h-[44px]"
             >
-              <LogIn className="w-3.5 h-3.5 text-amber-400" />
+              <LogIn className="w-3.5 h-3.5 text-[#C8102E]" />
               <span>Sign In</span>
             </button>
           )}
 
-          {/* Cart button */}
+          {/* Cart button in Mimis Red */}
           <button
             id="nav-btn-cart"
             onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-stone-950 font-bold px-3 sm:px-4 py-2 rounded-xl shadow-md shadow-orange-950/40 hover:shadow-orange-900/60 transition-all transform active:scale-95"
+            className="flex items-center gap-2 bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold px-3 sm:px-4 py-2 rounded-xl shadow-md shadow-[#C8102E]/20 transition-all transform active:scale-95 cursor-pointer min-h-[44px]"
             aria-label="View Shopping Cart"
           >
             <div className="relative">
-              <ShoppingBag className="w-5 h-5 text-stone-950" />
+              <ShoppingBag className="w-5 h-5 text-white" />
               {cartCount > 0 && (
                 <span
                   id="nav-cart-badge"
-                  className="absolute -top-2 -right-2 bg-stone-950 text-amber-400 text-xs font-extrabold w-5 h-5 rounded-full flex items-center justify-center border-2 border-amber-500"
+                  className="absolute -top-2 -right-2 bg-[#D4AF37] text-[#1A1A1A] text-[10px] font-extrabold w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-white"
                 >
                   {cartCount}
                 </span>
               )}
             </div>
-            <span className="hidden sm:inline text-xs font-extrabold tracking-wide uppercase">
+            <span className="hidden sm:inline text-xs font-bold tracking-wide">
               {cartCount === 0 ? 'Cart' : formatMoney(cartSubtotal)}
             </span>
           </button>
@@ -355,7 +346,7 @@ export const Navbar: React.FC = () => {
           <button
             id="nav-btn-mobile-menu"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-stone-300 hover:text-white rounded-lg lg:hidden hover:bg-stone-800 transition-colors"
+            className="p-2 text-[#475569] hover:text-[#111827] rounded-xl lg:hidden hover:bg-[#FFF8ED] transition-colors cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
@@ -363,42 +354,42 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer Menu - Mobile-First design */}
       {mobileMenuOpen && (
-        <div id="mobile-nav-drawer" className="lg:hidden bg-stone-950 border-b border-stone-800 px-4 pt-3 pb-6 space-y-3">
+        <div id="mobile-nav-drawer" className="lg:hidden bg-white border-b border-[#E5E7EB] px-4 pt-3 pb-6 space-y-3 shadow-lg">
           {/* User Status Card in Mobile */}
-          <div className="p-3 rounded-xl bg-stone-900 border border-stone-800 flex items-center justify-between">
+          <div className="p-3.5 rounded-2xl bg-[#FFF8ED] border border-[#E5E7EB] flex items-center justify-between">
             {isAuthenticated && currentUser ? (
               <div className="flex items-center gap-2.5">
                 <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-extrabold ${
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-extrabold ${
                     isAdmin
-                      ? 'bg-amber-500 text-stone-950'
-                      : 'bg-stone-700 text-stone-200'
+                      ? 'bg-[#C8102E] text-white'
+                      : 'bg-[#1A1A1A] text-white'
                   }`}
                 >
                   {currentUser.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-stone-100 flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-[#111827] flex items-center gap-1.5">
                     <span>{currentUser.name}</span>
                     {isAdmin ? (
-                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold uppercase">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#C8102E]/10 text-[#C8102E] font-bold uppercase">
                         Admin
                       </span>
                     ) : (
-                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 font-semibold uppercase">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-white text-[#475569] font-semibold uppercase border border-[#E5E7EB]">
                         Customer
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-stone-400">{currentUser.email}</p>
+                  <p className="text-[11px] text-[#475569]">{currentUser.email}</p>
                 </div>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <UserIcon className="w-5 h-5 text-stone-400" />
-                <span className="text-xs text-stone-300">Guest Customer</span>
+                <UserIcon className="w-5 h-5 text-[#9CA3AF]" />
+                <span className="text-xs text-[#475569]">Guest Customer</span>
               </div>
             )}
 
@@ -406,7 +397,7 @@ export const Navbar: React.FC = () => {
               <button
                 id="mobile-nav-signout-btn"
                 onClick={() => handleNav(logout)}
-                className="text-xs text-rose-400 hover:text-rose-300 font-semibold px-2 py-1 rounded bg-stone-800/80"
+                className="text-xs text-[#EF4444] hover:bg-rose-50 font-semibold px-2.5 py-1.5 rounded-xl border border-rose-200 cursor-pointer min-h-[44px] flex items-center"
               >
                 Sign Out
               </button>
@@ -414,25 +405,25 @@ export const Navbar: React.FC = () => {
               <button
                 id="mobile-nav-signin-btn"
                 onClick={() => handleNav(() => openAuthModal('login'))}
-                className="text-xs text-amber-400 font-semibold px-3 py-1.5 rounded-lg bg-stone-800 border border-amber-500/30"
+                className="text-xs text-[#C8102E] font-semibold px-3 py-1.5 rounded-xl bg-white border border-[#C8102E]/30 cursor-pointer min-h-[44px] flex items-center"
               >
-                Sign In / Join
+                Sign In
               </button>
             )}
           </div>
 
-          <div className="flex flex-col gap-1 border-b border-stone-800 pb-3">
+          <div className="flex flex-col gap-1 border-b border-[#E5E7EB] pb-3">
             <button
               id="mobile-nav-home"
               onClick={() => handleNav(() => navigateTo({ type: 'home' }))}
-              className="text-left px-3 py-2 rounded-lg text-sm font-semibold text-stone-200 hover:bg-stone-850 hover:text-amber-400"
+              className="text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#111827] hover:bg-[#FFF8ED] hover:text-[#C8102E] cursor-pointer min-h-[44px] flex items-center"
             >
               Home
             </button>
             <button
               id="mobile-nav-menu"
               onClick={() => handleNav(() => navigateTo({ type: 'menu' }))}
-              className="text-left px-3 py-2 rounded-lg text-sm font-semibold text-stone-200 hover:bg-stone-850 hover:text-amber-400"
+              className="text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#111827] hover:bg-[#FFF8ED] hover:text-[#C8102E] cursor-pointer min-h-[44px] flex items-center"
             >
               Full Menu
             </button>
@@ -443,7 +434,7 @@ export const Navbar: React.FC = () => {
                 onClick={() =>
                   handleNav(() => navigateTo({ type: 'menu', sectionSlug: sec.slug }))
                 }
-                className="text-left px-5 py-1.5 rounded-lg text-xs font-medium text-stone-400 hover:text-amber-400"
+                className="text-left px-6 py-2 rounded-xl text-xs font-medium text-[#475569] hover:text-[#C8102E] hover:bg-[#FFF8ED] cursor-pointer min-h-[40px] flex items-center"
               >
                 ↳ {sec.name}
               </button>
@@ -451,11 +442,11 @@ export const Navbar: React.FC = () => {
             <button
               id="mobile-nav-track-order"
               onClick={() => handleNav(() => navigateTo({ type: 'track-order' }))}
-              className="text-left px-3 py-2 rounded-lg text-sm font-semibold text-stone-200 hover:bg-stone-850 hover:text-amber-400 flex items-center justify-between"
+              className="text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#111827] hover:bg-[#FFF8ED] hover:text-[#C8102E] flex items-center justify-between cursor-pointer min-h-[44px]"
             >
               <span>Track Order</span>
               {pendingOrdersCount > 0 && (
-                <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-500 text-stone-950">
+                <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[#D4AF37] text-[#1A1A1A]">
                   {pendingOrdersCount} Active
                 </span>
               )}
@@ -465,43 +456,43 @@ export const Navbar: React.FC = () => {
               <button
                 id="mobile-nav-my-orders"
                 onClick={() => handleNav(() => navigateTo({ type: 'my-orders' }))}
-                className="text-left px-3 py-2 rounded-lg text-sm font-semibold text-stone-200 hover:bg-stone-850 hover:text-amber-400 flex items-center justify-between"
+                className="text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#111827] hover:bg-[#FFF8ED] hover:text-[#C8102E] flex items-center justify-between cursor-pointer min-h-[44px]"
               >
                 <span className="flex items-center gap-2">
-                  <PackageCheck className="w-4 h-4 text-amber-500" />
+                  <PackageCheck className="w-4 h-4 text-[#C8102E]" />
                   My Orders
                 </span>
                 {userOrders.length > 0 && (
-                  <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-stone-800 text-stone-300">
+                  <span className="px-2 py-0.5 text-xs font-bold rounded-full bg-[#E5E7EB] text-[#475569]">
                     {userOrders.length}
                   </span>
                 )}
               </button>
             )}
 
-            {/* CRITICAL REQUIREMENT: Admin link strictly visible ONLY if user has admin role */}
+            {/* Admin link strictly visible ONLY if user has admin role */}
             {isAdmin && (
               <button
                 id="mobile-nav-admin"
                 onClick={() => handleNav(() => navigateTo({ type: 'admin' }))}
-                className="text-left px-3 py-2 rounded-lg text-sm font-semibold text-amber-400 hover:bg-stone-850 flex items-center gap-2 mt-1 border border-amber-500/20 bg-amber-500/5"
+                className="text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#1A1A1A] hover:bg-[#FFF8ED] flex items-center gap-2 mt-1 border border-[#D4AF37]/50 bg-[#FFF8ED] cursor-pointer min-h-[44px]"
               >
-                <ShieldAlert className="w-4 h-4 text-amber-400" />
+                <ShieldAlert className="w-4 h-4 text-[#D4AF37]" />
                 <span>Admin Portal</span>
-                <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-amber-500 text-stone-950 font-bold uppercase">
-                  Staff Only
+                <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-[#D4AF37] text-[#1A1A1A] font-bold uppercase">
+                  Staff
                 </span>
               </button>
             )}
           </div>
 
-          <div className="pt-2 text-xs text-stone-400 space-y-1">
+          <div className="pt-2 text-xs text-[#475569] space-y-1.5">
             <p className="flex items-center gap-2">
-              <Clock className="w-3.5 h-3.5 text-amber-500" />
+              <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
               {siteConfig.opening_hours}
             </p>
             <p className="flex items-center gap-2">
-              <MapPin className="w-3.5 h-3.5 text-amber-500" />
+              <MapPin className="w-3.5 h-3.5 text-[#C8102E]" />
               {siteConfig.address}
             </p>
           </div>
@@ -510,4 +501,3 @@ export const Navbar: React.FC = () => {
     </header>
   );
 };
-

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Product } from '../../types';
 import { useRestaurant } from '../../context/RestaurantContext';
-import { Plus, Check, Eye } from 'lucide-react';
+import { Plus, Eye } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -15,14 +15,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     updateCartQuantity,
     setSelectedProductModal,
     categories,
-    sections,
   } = useRestaurant();
 
   const cartItem = cart.find((i) => i.product_id === product.id);
   const currentQty = cartItem ? cartItem.quantity : 0;
 
   const category = categories.find((c) => c.id === product.category_id);
-  const section = category ? sections.find((s) => s.id === category.section_id) : null;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -45,13 +43,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     <div
       id={`product-card-${product.slug}`}
       onClick={() => setSelectedProductModal(product)}
-      className={`group bg-white rounded-2xl overflow-hidden border border-stone-200/80 hover:border-amber-400/60 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer ${
-        !product.is_available ? 'opacity-70 bg-stone-50' : ''
+      className={`group bg-white rounded-2xl overflow-hidden border border-[#E5E7EB] hover:border-[#C8102E]/40 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer ${
+        !product.is_available ? 'opacity-70 bg-[#FFF8ED]/30' : ''
       }`}
     >
       <div>
         {/* Product Image */}
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#FFF8ED]/50">
           <img
             src={product.image}
             alt={product.name}
@@ -64,26 +62,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {/* Badging: Category & Availability */}
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
             {category && (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase bg-stone-900/80 backdrop-blur-md text-amber-400 border border-stone-800">
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide uppercase bg-white/90 backdrop-blur-md text-[#111827] border border-white/60 shadow-xs">
                 {category.name}
               </span>
             )}
             {product.is_featured && product.is_available && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-500 text-stone-950 shadow-sm">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#D4AF37] text-[#1A1A1A] shadow-xs">
                 Featured
               </span>
             )}
             {!product.is_available && (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-rose-900/90 text-rose-200 border border-rose-700">
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-red-100 text-[#EF4444] border border-red-200">
                 Unavailable
               </span>
             )}
           </div>
 
           {/* Quick view overlay icon on hover */}
-          <div className="absolute inset-0 bg-stone-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <span className="bg-stone-900/80 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-md">
-              <Eye className="w-3.5 h-3.5 text-amber-400" />
+          <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <span className="bg-white/95 backdrop-blur-md text-[#111827] text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-md border border-[#E5E7EB]">
+              <Eye className="w-3.5 h-3.5 text-[#C8102E]" />
               <span>View Details</span>
             </span>
           </div>
@@ -92,24 +90,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* Info */}
         <div className="p-4 sm:p-5">
           <div className="flex items-baseline justify-between gap-2 mb-1">
-            <h4 className="font-serif-display text-base sm:text-lg font-bold text-stone-900 group-hover:text-amber-700 transition-colors line-clamp-1">
+            <h4 className="text-base sm:text-lg font-bold text-[#111827] group-hover:text-[#C8102E] transition-colors line-clamp-1">
               {product.name}
             </h4>
           </div>
 
-          <p className="text-xs sm:text-sm text-stone-500 line-clamp-2 leading-relaxed mb-4">
+          <p className="text-xs sm:text-sm text-[#475569] line-clamp-2 leading-relaxed mb-4">
             {product.description}
           </p>
         </div>
       </div>
 
       {/* Footer with Price & Add Button */}
-      <div className="p-4 sm:p-5 pt-0 border-t border-stone-100 flex items-center justify-between gap-3">
+      <div className="p-4 sm:p-5 pt-0 border-t border-[#E5E7EB] flex items-center justify-between gap-3">
         <div>
-          <span className="text-[11px] font-medium text-stone-400 uppercase tracking-wider block">
+          <span className="text-[10px] font-semibold text-[#475569] uppercase tracking-wider block">
             Price
           </span>
-          <span className="text-base sm:text-lg font-extrabold text-stone-900">
+          <span className="text-base sm:text-lg font-extrabold text-[#111827]">
             {formatMoney(product.price)}
           </span>
         </div>
@@ -119,7 +117,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {!product.is_available ? (
             <span
               id={`btn-unavailable-${product.slug}`}
-              className="inline-block px-3 py-1.5 rounded-xl text-xs font-bold text-stone-400 bg-stone-200/60 cursor-not-allowed"
+              className="inline-block px-3 py-1.5 rounded-xl text-xs font-semibold text-[#9CA3AF] bg-[#E5E7EB] cursor-not-allowed"
             >
               Unavailable
             </span>
@@ -127,18 +125,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <button
               id={`btn-add-product-${product.slug}`}
               onClick={handleAdd}
-              className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-stone-950 font-bold px-3.5 py-2 rounded-xl text-xs sm:text-sm shadow-sm hover:shadow transition-all transform active:scale-95"
+              className="flex items-center gap-1.5 bg-[#C8102E] hover:bg-[#A70D26] active:bg-[#8E0B20] text-white font-semibold px-3.5 py-2 rounded-xl text-xs sm:text-sm shadow-xs transition-all transform active:scale-95 cursor-pointer min-h-[38px]"
               aria-label={`Add ${product.name} to cart`}
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
               <span>Add</span>
             </button>
           ) : (
-            <div className="flex items-center bg-stone-900 text-white rounded-xl p-1 shadow-sm">
+            <div className="flex items-center bg-[#1A1A1A] text-white rounded-xl p-1 shadow-xs">
               <button
                 id={`btn-decrement-${product.slug}`}
                 onClick={handleDecrement}
-                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-stone-800 text-amber-400 font-bold text-sm transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-stone-800 text-[#D4AF37] font-bold text-sm transition-colors cursor-pointer"
                 aria-label="Decrease quantity"
               >
                 -
@@ -149,7 +147,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               <button
                 id={`btn-increment-${product.slug}`}
                 onClick={handleIncrement}
-                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-stone-800 text-amber-400 font-bold text-sm transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-stone-800 text-[#D4AF37] font-bold text-sm transition-colors cursor-pointer"
                 aria-label="Increase quantity"
               >
                 +

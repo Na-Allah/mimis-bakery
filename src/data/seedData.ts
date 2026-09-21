@@ -1,8 +1,8 @@
 import { Section, Category, Product, SiteConfiguration } from '../types';
 
 export const initialSiteConfig: SiteConfiguration = {
-  restaurant_name: 'Flame & Flour Artisan Grill & Bakery',
-  tagline: 'Wood-Fired Meats, Heritage Bakery & Craft Refreshers',
+  restaurant_name: 'Mimis Restaurant',
+  tagline: 'Not just by Name.',
   logo: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=120&q=80',
   phone: '+234 803 928 1726',
   whatsapp_number: '+2348039281726',

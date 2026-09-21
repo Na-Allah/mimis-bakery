@@ -8,7 +8,6 @@ import {
   ArrowRight,
   ArrowLeft,
   Utensils,
-  Truck,
   ShieldCheck,
 } from 'lucide-react';
 
@@ -20,28 +19,27 @@ export const CartPage: React.FC = () => {
     removeFromCart,
     clearCart,
     cartSubtotal,
-    siteConfig,
     formatMoney,
     navigateTo,
   } = useRestaurant();
 
   if (cart.length === 0) {
     return (
-      <div id="cart-page-empty" className="min-h-screen bg-stone-100/70 py-16 px-4">
-        <div className="max-w-md mx-auto text-center bg-white p-8 sm:p-12 rounded-3xl border border-stone-200 shadow-sm space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mx-auto">
+      <div id="cart-page-empty" className="min-h-screen bg-[#FFF8ED]/40 py-16 px-4">
+        <div className="max-w-md mx-auto text-center bg-white p-8 sm:p-12 rounded-3xl border border-[#E5E7EB] shadow-xs space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-[#FFF8ED] border border-[#E5E7EB] flex items-center justify-center text-[#C8102E] mx-auto">
             <ShoppingBag className="w-8 h-8" />
           </div>
-          <h2 className="font-serif-display text-2xl font-bold text-stone-900">
+          <h2 className="text-2xl font-extrabold text-[#111827]">
             Your cart is empty.
           </h2>
-          <p className="text-sm text-stone-500 max-w-xs mx-auto leading-relaxed">
-            Looks like you haven't added any flame-grilled meats or fresh bakery treats to your order yet.
+          <p className="text-sm text-[#475569] max-w-xs mx-auto leading-relaxed">
+            Looks like you haven&apos;t added any flame-grilled meals or fresh bakery treats to your order yet.
           </p>
           <button
             id="cart-page-btn-browse-menu"
             onClick={() => navigateTo({ type: 'menu' })}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-amber-400 font-bold text-xs uppercase tracking-wider transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-xs uppercase tracking-wider transition-colors min-h-[44px] cursor-pointer"
           >
             <Utensils className="w-4 h-4" />
             <span>Browse Menu</span>
@@ -52,13 +50,13 @@ export const CartPage: React.FC = () => {
   }
 
   return (
-    <div id="cart-page-container" className="min-h-screen bg-stone-100/70 py-10 sm:py-16">
+    <div id="cart-page-container" className="min-h-screen bg-[#FFF8ED]/40 py-8 sm:py-14">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex items-center justify-between">
           <button
             id="cart-page-btn-back"
             onClick={() => navigateTo({ type: 'menu' })}
-            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-600 hover:text-stone-900 transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#475569] hover:text-[#111827] transition-colors min-h-[44px] cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Continue Shopping</span>
@@ -67,7 +65,7 @@ export const CartPage: React.FC = () => {
           <button
             id="cart-page-btn-clear-all"
             onClick={clearCart}
-            className="text-xs text-rose-600 hover:text-rose-700 font-semibold"
+            className="text-xs text-[#EF4444] hover:text-red-700 font-semibold cursor-pointer min-h-[44px] flex items-center"
           >
             Clear All Items
           </button>
@@ -75,17 +73,17 @@ export const CartPage: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Items Table */}
-          <div className="lg:col-span-8 bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
-            <div className="border-b border-stone-100 pb-4">
-              <h1 className="font-serif-display text-2xl sm:text-3xl font-bold text-stone-900">
+          <div className="lg:col-span-8 bg-white rounded-3xl p-6 sm:p-8 border border-[#E5E7EB] shadow-xs space-y-6">
+            <div className="border-b border-[#E5E7EB] pb-4">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827]">
                 Your Shopping Cart
               </h1>
-              <p className="text-xs text-stone-500 mt-1">
-                Review your items and adjust quantities before placing order.
+              <p className="text-xs text-[#475569] mt-1">
+                Review your items and adjust quantities before placing your order.
               </p>
             </div>
 
-            <div className="divide-y divide-stone-100">
+            <div className="divide-y divide-[#E5E7EB]">
               {cart.map((item) => {
                 const product = products.find((p) => p.id === item.product_id);
                 if (!product) return null;
@@ -100,47 +98,48 @@ export const CartPage: React.FC = () => {
                       <img
                         src={product.image}
                         alt={product.name}
-                        className="w-18 h-18 rounded-2xl object-cover bg-stone-100 border border-stone-200 shrink-0"
+                        referrerPolicy="no-referrer"
+                        className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover bg-stone-100 border border-[#E5E7EB] shrink-0"
                       />
                       <div>
-                        <h4 className="font-serif-display text-base font-bold text-stone-900">
+                        <h4 className="text-base font-semibold text-[#111827]">
                           {product.name}
                         </h4>
-                        <p className="text-xs text-stone-500">
+                        <p className="text-xs text-[#475569]">
                           {formatMoney(product.price)} each
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-6">
+                    <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-6">
                       {/* Quantity Selector */}
-                      <div className="flex items-center bg-stone-50 border border-stone-300 rounded-xl p-0.5">
+                      <div className="flex items-center bg-[#FFF8ED]/40 border border-[#E5E7EB] rounded-xl p-0.5">
                         <button
                           onClick={() => updateCartQuantity(product.id, item.quantity - 1)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-stone-200 text-stone-700 text-xs font-bold transition-colors"
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#FFF8ED] text-[#111827] text-xs font-bold transition-colors cursor-pointer"
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
-                        <span className="w-8 text-center text-xs font-bold text-stone-900">
+                        <span className="w-8 text-center text-xs font-bold text-[#111827]">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateCartQuantity(product.id, item.quantity + 1)}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-stone-200 text-stone-700 text-xs font-bold transition-colors"
+                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#FFF8ED] text-[#111827] text-xs font-bold transition-colors cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
 
                       {/* Subtotal */}
-                      <span className="font-bold text-stone-900 text-base min-w-[5rem] text-right">
+                      <span className="font-bold text-[#111827] text-base min-w-[5rem] text-right">
                         {formatMoney(itemSubtotal)}
                       </span>
 
                       {/* Remove */}
                       <button
                         onClick={() => removeFromCart(product.id)}
-                        className="text-stone-400 hover:text-rose-600 p-1.5 transition-colors"
+                        className="text-[#9CA3AF] hover:text-[#EF4444] p-2 transition-colors cursor-pointer min-h-[44px] flex items-center justify-center"
                         title="Remove item"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -153,23 +152,23 @@ export const CartPage: React.FC = () => {
           </div>
 
           {/* Checkout Summary Card */}
-          <div className="lg:col-span-4 bg-stone-900 text-white rounded-3xl p-6 sm:p-8 border border-stone-800 shadow-xl space-y-6">
-            <h3 className="font-serif-display text-xl font-bold text-white">
+          <div className="lg:col-span-4 bg-white text-[#111827] rounded-3xl p-6 sm:p-8 border border-[#E5E7EB] shadow-xs space-y-6">
+            <h3 className="text-xl font-bold text-[#111827]">
               Order Summary
             </h3>
 
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between text-stone-400">
+              <div className="flex justify-between text-[#475569]">
                 <span>Subtotal</span>
-                <span className="text-white font-bold">{formatMoney(cartSubtotal)}</span>
+                <span className="text-[#111827] font-bold">{formatMoney(cartSubtotal)}</span>
               </div>
-              <div className="flex justify-between text-stone-400 text-xs">
+              <div className="flex justify-between text-[#475569] text-xs">
                 <span>Delivery Fee</span>
                 <span>Calculated at checkout (Free pickup)</span>
               </div>
-              <div className="border-t border-stone-800 pt-3 flex justify-between text-base font-extrabold text-white">
+              <div className="border-t border-[#E5E7EB] pt-3 flex justify-between text-base font-extrabold text-[#111827]">
                 <span>Estimated Total</span>
-                <span className="text-amber-400 font-serif-display text-xl">
+                <span className="text-[#C8102E] text-xl font-black">
                   {formatMoney(cartSubtotal)}
                 </span>
               </div>
@@ -178,15 +177,15 @@ export const CartPage: React.FC = () => {
             <button
               id="cart-page-btn-proceed-checkout"
               onClick={() => navigateTo({ type: 'checkout' })}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-stone-950 font-bold py-4 px-6 rounded-2xl shadow-lg transition-all text-sm transform active:scale-98"
+              className="w-full flex items-center justify-center gap-2 bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold py-4 px-6 rounded-2xl shadow-md shadow-[#C8102E]/20 transition-all text-sm cursor-pointer min-h-[44px]"
             >
               <span>Proceed to Checkout</span>
-              <ArrowRight className="w-4 h-4 text-stone-950" />
+              <ArrowRight className="w-4 h-4 text-white" />
             </button>
 
-            <div className="text-[11px] text-stone-400 space-y-1 pt-2">
-              <p className="flex items-center gap-1.5 text-stone-300 font-semibold">
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+            <div className="text-[11px] text-[#475569] space-y-1 pt-2">
+              <p className="flex items-center gap-1.5 text-[#111827] font-semibold">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#C8102E]" />
                 <span>Instant Kitchen WhatsApp Notification</span>
               </p>
               <p>Delivery and pickup options selectable on the next step.</p>

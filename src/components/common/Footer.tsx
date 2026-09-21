@@ -1,7 +1,8 @@
 import React from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
-import { Flame, Phone, MapPin, Clock, Mail, MessageSquare, ShieldAlert, Lock } from 'lucide-react';
+import { Phone, MapPin, Clock, Mail, MessageSquare, ShieldAlert, Lock } from 'lucide-react';
 import { buildWhatsAppChatUrl } from '../../services/notificationService';
+import { BrandLogo } from './BrandLogo';
 
 export const Footer: React.FC = () => {
   const {
@@ -19,20 +20,13 @@ export const Footer: React.FC = () => {
   );
 
   return (
-    <footer id="main-footer" className="bg-stone-950 text-stone-300 pt-16 pb-12 border-t border-stone-850">
+    <footer id="main-footer" className="bg-[#FFF8ED] text-[#475569] pt-14 pb-12 border-t border-[#E5E7EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 mb-10">
           {/* Brand info */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-md shadow-amber-950">
-                <Flame className="w-6 h-6" />
-              </div>
-              <span className="font-serif-display text-xl font-bold text-white tracking-tight">
-                {siteConfig.restaurant_name}
-              </span>
-            </div>
-            <p className="text-sm text-stone-400 leading-relaxed">
+            <BrandLogo size="lg" showTagline={true} />
+            <p className="text-sm text-[#475569] leading-relaxed">
               {siteConfig.description}
             </p>
             <div className="pt-2">
@@ -41,7 +35,7 @@ export const Footer: React.FC = () => {
                 href={directWhatsAppUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition-all"
+                className="inline-flex items-center gap-2 bg-[#16A34A] hover:bg-[#15803D] text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-sm transition-all min-h-[44px]"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>Chat via WhatsApp</span>
@@ -51,7 +45,7 @@ export const Footer: React.FC = () => {
 
           {/* Quick Menu Sections */}
           <div>
-            <h4 className="text-white text-sm font-bold uppercase tracking-wider mb-4">
+            <h4 className="text-[#111827] text-sm font-semibold uppercase tracking-wider mb-3.5">
               Menu Sections
             </h4>
             <ul className="space-y-2.5 text-sm">
@@ -59,7 +53,7 @@ export const Footer: React.FC = () => {
                 <button
                   id="footer-link-full-menu"
                   onClick={() => navigateTo({ type: 'menu' })}
-                  className="text-stone-400 hover:text-amber-400 transition-colors"
+                  className="text-[#475569] hover:text-[#C8102E] transition-colors cursor-pointer py-1 block"
                 >
                   All Menu Items
                 </button>
@@ -69,7 +63,7 @@ export const Footer: React.FC = () => {
                   <button
                     id={`footer-link-${sec.slug}`}
                     onClick={() => navigateTo({ type: 'menu', sectionSlug: sec.slug })}
-                    className="text-stone-400 hover:text-amber-400 transition-colors"
+                    className="text-[#475569] hover:text-[#C8102E] transition-colors cursor-pointer py-1 block"
                   >
                     {sec.name}
                   </button>
@@ -79,7 +73,7 @@ export const Footer: React.FC = () => {
                 <button
                   id="footer-link-track"
                   onClick={() => navigateTo({ type: 'track-order' })}
-                  className="text-stone-400 hover:text-amber-400 transition-colors"
+                  className="text-[#475569] hover:text-[#C8102E] transition-colors cursor-pointer py-1 block"
                 >
                   Track Existing Order
                 </button>
@@ -89,56 +83,56 @@ export const Footer: React.FC = () => {
 
           {/* Contact Details */}
           <div>
-            <h4 className="text-white text-sm font-bold uppercase tracking-wider mb-4">
+            <h4 className="text-[#111827] text-sm font-semibold uppercase tracking-wider mb-3.5">
               Contact & Location
             </h4>
-            <ul className="space-y-3 text-sm text-stone-400">
+            <ul className="space-y-3 text-sm text-[#475569]">
               <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <MapPin className="w-4 h-4 text-[#C8102E] shrink-0 mt-0.5" />
                 <span>{siteConfig.address}</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-amber-500 shrink-0" />
+                <Phone className="w-4 h-4 text-[#C8102E] shrink-0" />
                 <a
                   href={`tel:${siteConfig.phone.replace(/[^0-9+]/g, '')}`}
-                  className="hover:text-amber-400 transition-colors"
+                  className="hover:text-[#C8102E] transition-colors"
                 >
                   {siteConfig.phone}
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-amber-500 shrink-0" />
+                <Mail className="w-4 h-4 text-[#D4AF37] shrink-0" />
                 <a
                   href={`mailto:${siteConfig.email}`}
-                  className="hover:text-amber-400 transition-colors"
+                  className="hover:text-[#C8102E] transition-colors"
                 >
                   {siteConfig.email}
                 </a>
               </li>
               <li className="flex items-start gap-2.5">
-                <Clock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <Clock className="w-4 h-4 text-[#D4AF37] shrink-0 mt-0.5" />
                 <span>{siteConfig.opening_hours}</span>
               </li>
             </ul>
           </div>
 
           {/* Ordering Information */}
-          <div className="bg-stone-900/80 p-5 rounded-2xl border border-stone-800 space-y-3">
-            <h4 className="text-white text-sm font-bold uppercase tracking-wider">
+          <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-xs space-y-3">
+            <h4 className="text-[#111827] text-sm font-semibold uppercase tracking-wider">
               Ordering Policy
             </h4>
-            <p className="text-xs text-stone-400 leading-relaxed">
+            <p className="text-xs text-[#475569] leading-relaxed">
               Orders placed online are validated and dispatched directly to our kitchen staff with real-time WhatsApp order tracking receipts.
             </p>
-            <div className="text-xs text-amber-400/90 font-medium pt-1">
-              Flat Delivery: {siteConfig.currency_symbol}{siteConfig.default_delivery_fee.toLocaleString()} (Free in-store pickup)
+            <div className="text-xs text-[#1A1A1A] font-semibold pt-1">
+              Flat Delivery: <span className="text-[#C8102E]">{siteConfig.currency_symbol}{siteConfig.default_delivery_fee.toLocaleString()}</span> (Free pickup)
             </div>
             <div className="pt-2">
               {isAdminAuthenticated ? (
                 <button
                   id="footer-btn-admin-portal"
                   onClick={() => navigateTo({ type: 'admin' })}
-                  className="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1.5 transition-colors"
+                  className="text-xs text-[#C8102E] hover:text-[#A70D26] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer min-h-[44px]"
                 >
                   <ShieldAlert className="w-3.5 h-3.5" />
                   <span>Admin Portal ({adminUser?.name || 'Administrator'})</span>
@@ -147,10 +141,10 @@ export const Footer: React.FC = () => {
                 <button
                   id="footer-btn-staff-login"
                   onClick={() => setIsAdminLoginModalOpen(true)}
-                  className="text-[11px] text-stone-500 hover:text-stone-300 flex items-center gap-1.5 transition-colors"
+                  className="text-[11px] text-[#9CA3AF] hover:text-[#475569] flex items-center gap-1.5 transition-colors cursor-pointer min-h-[36px]"
                   title="Staff Management Portal Sign In"
                 >
-                  <Lock className="w-3 h-3 text-stone-500" />
+                  <Lock className="w-3 h-3 text-[#9CA3AF]" />
                   <span>Restaurant Staff Sign In</span>
                 </button>
               )}
@@ -158,12 +152,12 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="border-t border-stone-850 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-4">
+        <div className="border-t border-[#E5E7EB] pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-[#9CA3AF] gap-3">
           <p>
             © {new Date().getFullYear()} {siteConfig.restaurant_name}. All rights reserved.
           </p>
-          <p className="text-stone-400">
-            Powered by Single-Restaurant Ordering Platform
+          <p className="text-[#475569] font-medium">
+            Not just by Name.
           </p>
         </div>
       </div>

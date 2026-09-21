@@ -13,25 +13,25 @@ export const MobileCartBar: React.FC = () => {
   return (
     <div
       id="mobile-sticky-cart-bar"
-      className="fixed bottom-0 inset-x-0 z-40 p-3 sm:hidden bg-stone-950/95 backdrop-blur-md border-t border-stone-800 shadow-2xl animate-in slide-in-from-bottom duration-300"
+      className="fixed bottom-0 inset-x-0 z-40 p-3 sm:hidden bg-white/95 backdrop-blur-md border-t border-[#E5E7EB] shadow-[0_-4px_20px_rgba(0,0,0,0.08)] animate-in slide-in-from-bottom duration-300"
     >
       <div className="flex items-center justify-between gap-3">
         <button
           id="btn-mobile-cart-toggle"
           onClick={() => setIsCartOpen(true)}
-          className="flex items-center gap-2.5 text-stone-100 px-2"
+          className="flex items-center gap-2.5 text-[#111827] px-2 cursor-pointer min-h-[44px]"
         >
           <div className="relative">
-            <ShoppingBag className="w-5 h-5 text-amber-400" />
-            <span className="absolute -top-2 -right-2 bg-amber-500 text-stone-950 font-extrabold text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+            <ShoppingBag className="w-5 h-5 text-[#C8102E]" />
+            <span className="absolute -top-2 -right-2 bg-[#D4AF37] text-[#1A1A1A] font-extrabold text-[10px] w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-white">
               {cartCount}
             </span>
           </div>
           <div className="text-left">
-            <span className="text-[11px] text-stone-400 uppercase tracking-wider block">
+            <span className="text-[10px] text-[#475569] uppercase font-semibold tracking-wider block">
               Total
             </span>
-            <span className="text-sm font-bold text-white">
+            <span className="text-sm font-bold text-[#111827]">
               {formatMoney(cartSubtotal)}
             </span>
           </div>
@@ -40,10 +40,10 @@ export const MobileCartBar: React.FC = () => {
         <button
           id="btn-mobile-cart-checkout"
           onClick={() => navigateTo({ type: 'checkout' })}
-          className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 active:from-amber-400 active:to-orange-500 text-stone-950 font-extrabold text-xs uppercase tracking-wider py-3 px-4 rounded-xl shadow-lg shadow-orange-950/40"
+          className="flex-1 flex items-center justify-center gap-2 bg-[#C8102E] hover:bg-[#A70D26] active:bg-[#8E0B20] text-white font-semibold text-sm py-3 px-4 rounded-xl shadow-md shadow-[#C8102E]/25 cursor-pointer min-h-[44px]"
         >
           <span>Checkout</span>
-          <ArrowRight className="w-4 h-4 text-stone-950" />
+          <ArrowRight className="w-4 h-4 text-white" />
         </button>
       </div>
     </div>

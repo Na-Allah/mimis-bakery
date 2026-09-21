@@ -6,38 +6,34 @@ export const HeroBanner: React.FC = () => {
   const { siteConfig, navigateTo, formatMoney } = useRestaurant();
 
   return (
-    <section id="hero-section" className="relative overflow-hidden bg-stone-950 text-white py-16 sm:py-24 border-b border-stone-800">
-      {/* Background ambient glow */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-orange-700/10 rounded-full blur-3xl pointer-events-none" />
-
+    <section id="hero-section" className="relative overflow-hidden bg-[#FFF8ED] text-[#111827] py-12 sm:py-18 lg:py-24 border-b border-[#E5E7EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Text Column */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold tracking-wide uppercase">
-              <Flame className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+          <div className="lg:col-span-7 space-y-5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#D4AF37]/50 text-[#1A1A1A] text-xs font-semibold shadow-xs">
+              <Flame className="w-3.5 h-3.5 text-[#C8102E]" />
               <span>Flame-Grilled Meats & Fresh Heritage Bakery</span>
             </div>
 
-            <h1 className="font-serif-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-tight">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#111827] leading-[1.12]">
               Savor Authentic Fire, Crust & Flavor.
             </h1>
 
-            <p className="text-base sm:text-lg text-stone-300 max-w-2xl leading-relaxed">
+            <p className="text-sm sm:text-base lg:text-lg text-[#475569] max-w-2xl leading-relaxed">
               From charcoal-roasted suya chicken and spicy peppered asun to freshly baked morning pull-apart sweet loaves and artisanal meat pies. Order in seconds with live WhatsApp receipt dispatch.
             </p>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            {/* CTAs - Mobile-first responsive touch targets */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
               <button
                 id="hero-btn-order-now"
                 onClick={() => navigateTo({ type: 'menu' })}
-                className="flex items-center gap-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-stone-950 font-bold px-7 py-3.5 rounded-xl shadow-lg shadow-orange-950/60 hover:shadow-orange-900 transition-all transform active:scale-95 text-base"
+                className="flex items-center justify-center gap-2.5 bg-[#C8102E] hover:bg-[#A70D26] active:bg-[#8E0B20] text-white font-semibold px-7 py-3.5 rounded-xl shadow-md shadow-[#C8102E]/20 transition-all transform active:scale-95 text-base cursor-pointer min-h-[44px]"
               >
-                <Utensils className="w-5 h-5 text-stone-950" />
+                <Utensils className="w-5 h-5 text-white" />
                 <span>Order Now</span>
-                <ArrowRight className="w-4 h-4 text-stone-950" />
+                <ArrowRight className="w-4 h-4 text-white" />
               </button>
 
               <button
@@ -46,61 +42,61 @@ export const HeroBanner: React.FC = () => {
                   const element = document.getElementById('home-sections-grid');
                   element?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="flex items-center gap-2 bg-stone-900 hover:bg-stone-850 text-stone-200 border border-stone-700 px-6 py-3.5 rounded-xl text-base font-semibold transition-all hover:border-amber-500/40"
+                className="flex items-center justify-center gap-2 bg-white hover:bg-[#FFF8ED] text-[#111827] border border-[#E5E7EB] px-6 py-3.5 rounded-xl text-base font-semibold shadow-xs transition-all cursor-pointer min-h-[44px]"
               >
                 <span>Explore 3 Kitchens</span>
               </button>
             </div>
 
             {/* Feature badging */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-6 border-t border-stone-850 text-xs text-stone-400">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-5 border-t border-[#E5E7EB] text-xs text-[#475569]">
               <div className="flex items-center gap-2.5">
-                <Truck className="w-4 h-4 text-amber-400 shrink-0" />
+                <Truck className="w-4 h-4 text-[#C8102E] shrink-0" />
                 <span>
-                  Delivery <strong className="text-stone-200">{formatMoney(siteConfig.default_delivery_fee)}</strong> or Free Pickup
+                  Delivery <strong className="text-[#111827]">{formatMoney(siteConfig.default_delivery_fee)}</strong> or Free Pickup
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                <Clock className="w-4 h-4 text-[#D4AF37] shrink-0" />
                 <span>Fast Kitchen Prep</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-[#16A34A] shrink-0" />
                 <span>WhatsApp Order Receipt</span>
               </div>
             </div>
           </div>
 
           {/* Right Image Composition */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-stone-800 aspect-[4/3] sm:aspect-[16/11]">
+          <div className="lg:col-span-5 relative mt-4 lg:mt-0">
+            <div className="relative rounded-3xl overflow-hidden shadow-xl border border-[#E5E7EB] aspect-[4/3] sm:aspect-[16/11]">
               <img
                 src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=900&q=80"
                 alt="Wood-Fired Grill Feast"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/30 to-transparent" />
-              <div className="absolute bottom-5 left-5 right-5 text-stone-200">
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute bottom-5 left-5 right-5 text-white">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#D4AF37]">
                   Daily Special
                 </span>
-                <p className="font-serif-display text-xl font-bold text-white mt-1">
+                <p className="text-lg sm:text-xl font-bold text-white mt-0.5 leading-snug">
                   Flame-Grilled Meat Platters & Baked Treats
                 </p>
-                <p className="text-xs text-stone-300 mt-1">
-                  Crafted fresh every single morning using heirloom spices and prime cuts.
+                <p className="text-xs text-stone-200 mt-1">
+                  Crafted fresh every morning using heirloom spices and prime cuts.
                 </p>
               </div>
             </div>
 
-            {/* Floating floating card */}
-            <div className="hidden sm:flex absolute -bottom-6 -left-6 bg-stone-900/90 backdrop-blur-md border border-stone-700 p-4 rounded-2xl shadow-xl items-center gap-3 max-w-xs">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+            {/* Floating feature card */}
+            <div className="hidden sm:flex absolute -bottom-5 -left-5 bg-white/95 backdrop-blur-md border border-[#E5E7EB] p-3.5 rounded-2xl shadow-xl items-center gap-3 max-w-xs">
+              <div className="w-10 h-10 rounded-xl bg-[#FFF8ED] border border-[#E5E7EB] flex items-center justify-center text-[#C8102E] shrink-0">
                 <Flame className="w-5 h-5" />
               </div>
               <div className="text-xs">
-                <p className="font-bold text-white">Three Distinct Sections</p>
-                <p className="text-stone-400">Bakery • Food & Drinks • Meat Grill</p>
+                <p className="font-bold text-[#111827]">Three Distinct Kitchens</p>
+                <p className="text-[#475569] text-[11px]">Bakery • Food & Drinks • Meat Grill</p>
               </div>
             </div>
           </div>

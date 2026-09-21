@@ -7,7 +7,6 @@ import {
   Category,
   Section,
   OrderStatus,
-  OrderType,
   SiteConfiguration,
 } from '../../types';
 import {
@@ -17,21 +16,10 @@ import {
   MessageSquare,
   Settings,
   Search,
-  Filter,
   RefreshCw,
   Plus,
   Edit2,
-  Trash2,
-  CheckCircle2,
-  XCircle,
-  Eye,
-  ArrowRight,
-  TrendingUp,
-  Clock,
-  Phone,
   RotateCcw,
-  Check,
-  AlertTriangle,
   LogOut,
   UserCheck,
 } from 'lucide-react';
@@ -73,8 +61,6 @@ export const AdminPortal: React.FC = () => {
   const [productSectionFilter, setProductSectionFilter] = useState('all');
   const [productCategoryFilter, setProductCategoryFilter] = useState('all');
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
-  const [editingCategory, setEditingCategory] = useState<Partial<Category> | null>(null);
-  const [editingSection, setEditingSection] = useState<Partial<Section> | null>(null);
 
   // --- SETTINGS FORM STATE ---
   const [configForm, setConfigForm] = useState<SiteConfiguration>(siteConfig);
@@ -182,35 +168,35 @@ export const AdminPortal: React.FC = () => {
   }
 
   return (
-    <div id="admin-portal" className="min-h-screen bg-stone-900 text-stone-100 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div id="admin-portal" className="min-h-screen bg-[#FFF8ED]/40 text-[#111827] py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Admin Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-stone-800 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-[#E5E7EB] gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500 text-stone-950 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-[#FFF8ED] border border-[#E5E7EB] text-[#C8102E] flex items-center justify-center font-bold">
               <ShieldAlert className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-serif-display text-2xl sm:text-3xl font-bold text-white">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827]">
                   Restaurant Administration
                 </h1>
-                <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   <UserCheck className="w-3 h-3" />
                   <span>Authenticated</span>
                 </span>
               </div>
-              <p className="text-xs text-stone-400">
-                Logged in as <strong className="text-amber-400">{adminUser?.name || 'Administrator'}</strong> ({adminUser?.email})
+              <p className="text-xs text-[#475569]">
+                Logged in as <strong className="text-[#C8102E]">{adminUser?.name || 'Administrator'}</strong> ({adminUser?.email})
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <button
               id="admin-btn-logout"
               onClick={logoutAdmin}
-              className="px-3.5 py-2 rounded-xl bg-stone-800 hover:bg-rose-950/80 hover:text-rose-300 hover:border-rose-800 text-stone-300 border border-stone-700 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-red-50 hover:text-[#EF4444] text-[#475569] border border-[#E5E7EB] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer min-h-[44px]"
               title="Sign out of admin session"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -220,7 +206,7 @@ export const AdminPortal: React.FC = () => {
             <button
               id="admin-btn-back-to-store"
               onClick={() => navigateTo({ type: 'home' })}
-              className="px-4 py-2 rounded-xl bg-stone-800 hover:bg-stone-750 text-stone-200 text-xs font-semibold border border-stone-700 transition-colors"
+              className="px-4 py-2 rounded-xl bg-white hover:bg-[#FFF8ED] text-[#111827] text-xs font-semibold border border-[#E5E7EB] transition-colors cursor-pointer min-h-[44px]"
             >
               Exit to Storefront
             </button>
@@ -231,7 +217,7 @@ export const AdminPortal: React.FC = () => {
                   resetToDefaults();
                 }
               }}
-              className="px-3.5 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              className="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-[#EF4444] border border-red-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer min-h-[44px]"
               title="Reset all database tables to initial seed records"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -242,60 +228,60 @@ export const AdminPortal: React.FC = () => {
 
         {/* Operational KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-stone-950 p-5 rounded-2xl border border-stone-800 shadow-md">
-            <span className="text-xs text-stone-400 font-semibold uppercase tracking-wider block">
+          <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-xs">
+            <span className="text-xs text-[#475569] font-semibold uppercase tracking-wider block">
               Total Orders
             </span>
             <div className="flex items-baseline justify-between mt-2">
-              <span className="text-3xl font-extrabold text-white">{orders.length}</span>
-              <span className="text-xs text-amber-400 font-medium">Authoritative DB</span>
+              <span className="text-3xl font-extrabold text-[#111827]">{orders.length}</span>
+              <span className="text-xs text-[#C8102E] font-semibold">Authoritative DB</span>
             </div>
           </div>
 
-          <div className="bg-stone-950 p-5 rounded-2xl border border-stone-800 shadow-md">
-            <span className="text-xs text-stone-400 font-semibold uppercase tracking-wider block">
+          <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-xs">
+            <span className="text-xs text-[#475569] font-semibold uppercase tracking-wider block">
               Pending Fulfillment
             </span>
             <div className="flex items-baseline justify-between mt-2">
-              <span className="text-3xl font-extrabold text-amber-400">{pendingCount}</span>
-              <span className="text-xs text-stone-400">Needs Kitchen Action</span>
+              <span className="text-3xl font-extrabold text-[#C8102E]">{pendingCount}</span>
+              <span className="text-xs text-[#475569]">Needs Kitchen Action</span>
             </div>
           </div>
 
-          <div className="bg-stone-950 p-5 rounded-2xl border border-stone-800 shadow-md">
-            <span className="text-xs text-stone-400 font-semibold uppercase tracking-wider block">
+          <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-xs">
+            <span className="text-xs text-[#475569] font-semibold uppercase tracking-wider block">
               Fulfilled Revenue
             </span>
             <div className="flex items-baseline justify-between mt-2">
-              <span className="text-2xl font-extrabold text-emerald-400">
+              <span className="text-2xl font-extrabold text-emerald-700">
                 {formatMoney(totalRevenue)}
               </span>
-              <span className="text-xs text-stone-400">Snapshotted</span>
+              <span className="text-xs text-[#475569]">Snapshotted</span>
             </div>
           </div>
 
-          <div className="bg-stone-950 p-5 rounded-2xl border border-stone-800 shadow-md">
-            <span className="text-xs text-stone-400 font-semibold uppercase tracking-wider block">
+          <div className="bg-white p-5 rounded-2xl border border-[#E5E7EB] shadow-xs">
+            <span className="text-xs text-[#475569] font-semibold uppercase tracking-wider block">
               WhatsApp Delivery Rate
             </span>
             <div className="flex items-baseline justify-between mt-2">
-              <span className="text-3xl font-extrabold text-emerald-400">
+              <span className="text-3xl font-extrabold text-emerald-700">
                 {whatsAppSuccessRate}%
               </span>
-              <span className="text-xs text-stone-400">{notifications.length} Logs</span>
+              <span className="text-xs text-[#475569]">{notifications.length} Logs</span>
             </div>
           </div>
         </div>
 
         {/* Primary Tabs */}
-        <div className="flex items-center gap-2 border-b border-stone-800 overflow-x-auto pb-1">
+        <div className="flex items-center gap-2 border-b border-[#E5E7EB] overflow-x-auto pb-1">
           <button
             id="tab-admin-orders"
             onClick={() => setActiveTab('orders')}
-            className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+            className={`px-4 sm:px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] cursor-pointer ${
               activeTab === 'orders'
-                ? 'bg-amber-500 text-stone-950 shadow-md'
-                : 'text-stone-400 hover:text-white hover:bg-stone-800'
+                ? 'bg-[#C8102E] text-white shadow-xs'
+                : 'text-[#475569] hover:text-[#111827] hover:bg-[#FFF8ED]'
             }`}
           >
             <ListOrdered className="w-4 h-4" />
@@ -305,23 +291,23 @@ export const AdminPortal: React.FC = () => {
           <button
             id="tab-admin-catalog"
             onClick={() => setActiveTab('catalog')}
-            className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+            className={`px-4 sm:px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] cursor-pointer ${
               activeTab === 'catalog'
-                ? 'bg-amber-500 text-stone-950 shadow-md'
-                : 'text-stone-400 hover:text-white hover:bg-stone-800'
+                ? 'bg-[#C8102E] text-white shadow-xs'
+                : 'text-[#475569] hover:text-[#111827] hover:bg-[#FFF8ED]'
             }`}
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>Menu Catalog ({products.length} Products)</span>
+            <span>Menu Catalog ({products.length})</span>
           </button>
 
           <button
             id="tab-admin-whatsapp"
             onClick={() => setActiveTab('whatsapp')}
-            className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+            className={`px-4 sm:px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] cursor-pointer ${
               activeTab === 'whatsapp'
-                ? 'bg-amber-500 text-stone-950 shadow-md'
-                : 'text-stone-400 hover:text-white hover:bg-stone-800'
+                ? 'bg-[#C8102E] text-white shadow-xs'
+                : 'text-[#475569] hover:text-[#111827] hover:bg-[#FFF8ED]'
             }`}
           >
             <MessageSquare className="w-4 h-4" />
@@ -331,10 +317,10 @@ export const AdminPortal: React.FC = () => {
           <button
             id="tab-admin-settings"
             onClick={() => setActiveTab('settings')}
-            className={`px-5 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+            className={`px-4 sm:px-5 py-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] cursor-pointer ${
               activeTab === 'settings'
-                ? 'bg-amber-500 text-stone-950 shadow-md'
-                : 'text-stone-400 hover:text-white hover:bg-stone-800'
+                ? 'bg-[#C8102E] text-white shadow-xs'
+                : 'text-[#475569] hover:text-[#111827] hover:bg-[#FFF8ED]'
             }`}
           >
             <Settings className="w-4 h-4" />
@@ -346,16 +332,16 @@ export const AdminPortal: React.FC = () => {
         {activeTab === 'orders' && (
           <div className="space-y-6">
             {/* Filter Bar */}
-            <div className="bg-stone-950 p-4 rounded-2xl border border-stone-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white p-4 rounded-2xl border border-[#E5E7EB] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="relative">
-                <Search className="w-4 h-4 text-stone-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-[#9CA3AF] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   id="input-admin-order-search"
                   type="text"
                   value={orderSearch}
                   onChange={(e) => setOrderSearch(e.target.value)}
                   placeholder="Search order #, customer, phone..."
-                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-stone-900 border border-stone-800 text-xs text-stone-200 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-xs text-[#111827] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#C8102E] focus:border-[#C8102E] min-h-[40px]"
                 />
               </div>
 
@@ -364,7 +350,7 @@ export const AdminPortal: React.FC = () => {
                   id="select-admin-status-filter"
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full py-2 px-3 rounded-xl bg-stone-900 border border-stone-800 text-xs text-stone-200 focus:outline-none"
+                  className="w-full py-2 px-3 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-xs text-[#111827] focus:bg-white focus:outline-none min-h-[40px]"
                 >
                   <option value="all">All Order Statuses</option>
                   <option value="PENDING">PENDING</option>
@@ -381,7 +367,7 @@ export const AdminPortal: React.FC = () => {
                   id="select-admin-type-filter"
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className="w-full py-2 px-3 rounded-xl bg-stone-900 border border-stone-800 text-xs text-stone-200 focus:outline-none"
+                  className="w-full py-2 px-3 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-xs text-[#111827] focus:bg-white focus:outline-none min-h-[40px]"
                 >
                   <option value="all">All Fulfillment Types</option>
                   <option value="DELIVERY">DELIVERY</option>
@@ -394,7 +380,7 @@ export const AdminPortal: React.FC = () => {
                   id="select-admin-whatsapp-filter"
                   value={whatsAppFilter}
                   onChange={(e) => setWhatsAppFilter(e.target.value)}
-                  className="w-full py-2 px-3 rounded-xl bg-stone-900 border border-stone-800 text-xs text-stone-200 focus:outline-none"
+                  className="w-full py-2 px-3 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-xs text-[#111827] focus:bg-white focus:outline-none min-h-[40px]"
                 >
                   <option value="all">All WhatsApp Statuses</option>
                   <option value="SENT">SENT</option>
@@ -405,50 +391,50 @@ export const AdminPortal: React.FC = () => {
             </div>
 
             {/* Orders Table */}
-            <div className="bg-stone-950 rounded-2xl border border-stone-800 overflow-hidden shadow-xl">
+            <div className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden shadow-xs">
               <div className="overflow-x-auto">
-                <table id="table-admin-orders" className="w-full text-left text-xs text-stone-300">
-                  <thead className="bg-stone-900/90 text-stone-400 uppercase tracking-wider text-[11px] border-b border-stone-800">
+                <table id="table-admin-orders" className="w-full text-left text-xs text-[#111827]">
+                  <thead className="bg-[#FFF8ED]/60 text-[#475569] uppercase tracking-wider text-[11px] border-b border-[#E5E7EB]">
                     <tr>
-                      <th className="py-3.5 px-4">Order #</th>
-                      <th className="py-3.5 px-4">Customer & Contact</th>
-                      <th className="py-3.5 px-4">Type</th>
-                      <th className="py-3.5 px-4">Total</th>
-                      <th className="py-3.5 px-4">Order Status</th>
-                      <th className="py-3.5 px-4">WhatsApp Status</th>
-                      <th className="py-3.5 px-4">Created</th>
-                      <th className="py-3.5 px-4 text-right">Actions</th>
+                      <th className="py-3.5 px-4 font-semibold">Order #</th>
+                      <th className="py-3.5 px-4 font-semibold">Customer & Contact</th>
+                      <th className="py-3.5 px-4 font-semibold">Type</th>
+                      <th className="py-3.5 px-4 font-semibold">Total</th>
+                      <th className="py-3.5 px-4 font-semibold">Order Status</th>
+                      <th className="py-3.5 px-4 font-semibold">WhatsApp Status</th>
+                      <th className="py-3.5 px-4 font-semibold">Created</th>
+                      <th className="py-3.5 px-4 text-right font-semibold">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-stone-850">
+                  <tbody className="divide-y divide-[#E5E7EB]">
                     {filteredOrders.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="py-8 text-center text-stone-500">
+                        <td colSpan={8} className="py-8 text-center text-[#475569]">
                           No orders matching current filter criteria.
                         </td>
                       </tr>
                     ) : (
                       filteredOrders.map((order) => (
-                        <tr key={order.id} className="hover:bg-stone-900/40 transition-colors">
-                          <td className="py-3.5 px-4 font-mono font-bold text-amber-400">
+                        <tr key={order.id} className="hover:bg-[#FFF8ED]/30 transition-colors">
+                          <td className="py-3.5 px-4 font-mono font-bold text-[#C8102E]">
                             {order.order_number}
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className="font-bold text-white block">{order.customer_name}</span>
-                            <span className="text-stone-400 text-[11px]">{order.customer_phone}</span>
+                            <span className="font-bold text-[#111827] block">{order.customer_name}</span>
+                            <span className="text-[#475569] text-[11px]">{order.customer_phone}</span>
                           </td>
                           <td className="py-3.5 px-4">
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                                 order.order_type === 'DELIVERY'
-                                  ? 'bg-blue-950 text-blue-300 border border-blue-800'
-                                  : 'bg-stone-800 text-stone-300'
+                                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                  : 'bg-[#FFF8ED] text-[#475569] border border-[#E5E7EB]'
                               }`}
                             >
                               {order.order_type}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 font-bold text-white">
+                          <td className="py-3.5 px-4 font-bold text-[#111827]">
                             {formatMoney(order.total)}
                           </td>
                           <td className="py-3.5 px-4">
@@ -458,12 +444,12 @@ export const AdminPortal: React.FC = () => {
                               onChange={(e) =>
                                 updateOrderStatus(order.id, e.target.value as OrderStatus)
                               }
-                              className={`text-[11px] font-bold uppercase rounded-lg px-2.5 py-1 border focus:outline-none ${
+                              className={`text-[11px] font-bold uppercase rounded-lg px-2.5 py-1 border focus:outline-none cursor-pointer ${
                                 order.status === 'COMPLETED'
-                                  ? 'bg-emerald-950 text-emerald-400 border-emerald-800'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                   : order.status === 'CANCELLED'
-                                  ? 'bg-rose-950 text-rose-400 border-rose-800'
-                                  : 'bg-amber-950 text-amber-400 border-amber-800'
+                                  ? 'bg-red-50 text-red-700 border-red-200'
+                                  : 'bg-amber-50 text-amber-800 border-amber-200'
                               }`}
                             >
                               <option value="PENDING">PENDING</option>
@@ -478,16 +464,16 @@ export const AdminPortal: React.FC = () => {
                             <span
                               className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                                 order.whatsapp_status === 'SENT'
-                                  ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                   : order.whatsapp_status === 'FAILED'
-                                  ? 'bg-rose-950 text-rose-300 border border-rose-800'
-                                  : 'bg-amber-950 text-amber-300 border border-amber-800'
+                                  ? 'bg-red-50 text-red-700 border border-red-200'
+                                  : 'bg-amber-50 text-amber-800 border border-amber-200'
                               }`}
                             >
                               {order.whatsapp_status}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-stone-400 text-[11px]">
+                          <td className="py-3.5 px-4 text-[#475569] text-[11px]">
                             {new Date(order.created_at).toLocaleTimeString([], {
                               hour: '2-digit',
                               minute: '2-digit',
@@ -497,7 +483,7 @@ export const AdminPortal: React.FC = () => {
                             <button
                               id={`btn-view-order-${order.id}`}
                               onClick={() => setSelectedOrderModal(order)}
-                              className="px-2.5 py-1.5 rounded-lg bg-stone-850 hover:bg-stone-800 text-stone-200 text-xs font-semibold transition-colors"
+                              className="px-2.5 py-1.5 rounded-lg bg-[#FFF8ED] hover:bg-[#FFF8ED]/80 text-[#111827] border border-[#E5E7EB] text-xs font-semibold transition-colors cursor-pointer min-h-[36px]"
                             >
                               Inspect
                             </button>
@@ -516,34 +502,34 @@ export const AdminPortal: React.FC = () => {
         {activeTab === 'catalog' && (
           <div className="space-y-6">
             {/* Catalog Subtabs */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex gap-2">
                 <button
                   onClick={() => setCatalogSubTab('products')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold ${
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer min-h-[40px] ${
                     catalogSubTab === 'products'
-                      ? 'bg-stone-800 text-amber-400 border border-stone-700'
-                      : 'text-stone-400 hover:text-white'
+                      ? 'bg-[#C8102E] text-white shadow-xs'
+                      : 'bg-white text-[#475569] hover:text-[#111827] border border-[#E5E7EB]'
                   }`}
                 >
                   Products ({products.length})
                 </button>
                 <button
                   onClick={() => setCatalogSubTab('categories')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold ${
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer min-h-[40px] ${
                     catalogSubTab === 'categories'
-                      ? 'bg-stone-800 text-amber-400 border border-stone-700'
-                      : 'text-stone-400 hover:text-white'
+                      ? 'bg-[#C8102E] text-white shadow-xs'
+                      : 'bg-white text-[#475569] hover:text-[#111827] border border-[#E5E7EB]'
                   }`}
                 >
                   Categories ({categories.length})
                 </button>
                 <button
                   onClick={() => setCatalogSubTab('sections')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold ${
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer min-h-[40px] ${
                     catalogSubTab === 'sections'
-                      ? 'bg-stone-800 text-amber-400 border border-stone-700'
-                      : 'text-stone-400 hover:text-white'
+                      ? 'bg-[#C8102E] text-white shadow-xs'
+                      : 'bg-white text-[#475569] hover:text-[#111827] border border-[#E5E7EB]'
                   }`}
                 >
                   Sections ({sections.length})
@@ -562,7 +548,7 @@ export const AdminPortal: React.FC = () => {
                       is_featured: false,
                     })
                   }
-                  className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold px-4 py-2 rounded-xl text-xs"
+                  className="flex items-center gap-1.5 bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold px-4 py-2 rounded-xl text-xs cursor-pointer min-h-[40px]"
                 >
                   <Plus className="w-4 h-4" />
                   <span>New Product</span>
@@ -572,44 +558,45 @@ export const AdminPortal: React.FC = () => {
 
             {/* Products Table */}
             {catalogSubTab === 'products' && (
-              <div className="bg-stone-950 rounded-2xl border border-stone-800 overflow-hidden shadow-xl">
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden shadow-xs">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs text-stone-300">
-                    <thead className="bg-stone-900 text-stone-400 uppercase tracking-wider text-[11px] border-b border-stone-800">
+                  <table className="w-full text-left text-xs text-[#111827]">
+                    <thead className="bg-[#FFF8ED]/60 text-[#475569] uppercase tracking-wider text-[11px] border-b border-[#E5E7EB]">
                       <tr>
-                        <th className="py-3.5 px-4">Item</th>
-                        <th className="py-3.5 px-4">Category / Section</th>
-                        <th className="py-3.5 px-4">Price</th>
-                        <th className="py-3.5 px-4">Available</th>
-                        <th className="py-3.5 px-4">Featured</th>
-                        <th className="py-3.5 px-4 text-right">Actions</th>
+                        <th className="py-3.5 px-4 font-semibold">Item</th>
+                        <th className="py-3.5 px-4 font-semibold">Category / Section</th>
+                        <th className="py-3.5 px-4 font-semibold">Price</th>
+                        <th className="py-3.5 px-4 font-semibold">Available</th>
+                        <th className="py-3.5 px-4 font-semibold">Featured</th>
+                        <th className="py-3.5 px-4 text-right font-semibold">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-850">
+                    <tbody className="divide-y divide-[#E5E7EB]">
                       {filteredProducts.map((prod) => {
                         const cat = categories.find((c) => c.id === prod.category_id);
                         const sec = cat ? sections.find((s) => s.id === cat.section_id) : null;
 
                         return (
-                          <tr key={prod.id} className="hover:bg-stone-900/40">
+                          <tr key={prod.id} className="hover:bg-[#FFF8ED]/30">
                             <td className="py-3 px-4 flex items-center gap-3">
                               <img
                                 src={prod.image}
                                 alt={prod.name}
-                                className="w-10 h-10 rounded-lg object-cover bg-stone-900"
+                                referrerPolicy="no-referrer"
+                                className="w-10 h-10 rounded-lg object-cover bg-stone-100 border border-[#E5E7EB]"
                               />
                               <div>
-                                <span className="font-bold text-white block">{prod.name}</span>
-                                <span className="text-stone-500 text-[11px] line-clamp-1 max-w-xs">
+                                <span className="font-bold text-[#111827] block">{prod.name}</span>
+                                <span className="text-[#475569] text-[11px] line-clamp-1 max-w-xs">
                                   {prod.description}
                                 </span>
                               </div>
                             </td>
                             <td className="py-3 px-4">
-                              <span className="text-amber-400 font-semibold">{cat?.name}</span>
-                              <span className="text-stone-500 block text-[10px]">{sec?.name}</span>
+                              <span className="text-[#C8102E] font-semibold">{cat?.name}</span>
+                              <span className="text-[#475569] block text-[10px]">{sec?.name}</span>
                             </td>
-                            <td className="py-3 px-4 font-bold text-white">
+                            <td className="py-3 px-4 font-bold text-[#111827]">
                               {formatMoney(prod.price)}
                             </td>
                             <td className="py-3 px-4">
@@ -617,10 +604,10 @@ export const AdminPortal: React.FC = () => {
                                 onClick={() =>
                                   saveProduct({ ...prod, is_available: !prod.is_available })
                                 }
-                                className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase cursor-pointer ${
                                   prod.is_available
-                                    ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                                    : 'bg-rose-950 text-rose-300 border border-rose-800'
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : 'bg-red-50 text-red-700 border border-red-200'
                                 }`}
                               >
                                 {prod.is_available ? 'Available' : 'Disabled'}
@@ -631,10 +618,10 @@ export const AdminPortal: React.FC = () => {
                                 onClick={() =>
                                   saveProduct({ ...prod, is_featured: !prod.is_featured })
                                 }
-                                className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase cursor-pointer ${
                                   prod.is_featured
-                                    ? 'bg-amber-950 text-amber-300 border border-amber-800'
-                                    : 'bg-stone-850 text-stone-400'
+                                    ? 'bg-[#FFF8ED] text-[#C8102E] border border-[#E5E7EB]'
+                                    : 'bg-stone-100 text-[#475569]'
                                 }`}
                               >
                                 {prod.is_featured ? 'Featured' : 'Standard'}
@@ -643,7 +630,7 @@ export const AdminPortal: React.FC = () => {
                             <td className="py-3 px-4 text-right">
                               <button
                                 onClick={() => setEditingProduct(prod)}
-                                className="p-1.5 rounded-lg bg-stone-850 hover:bg-stone-800 text-stone-300 transition-colors"
+                                className="p-1.5 rounded-lg bg-[#FFF8ED] hover:bg-[#FFF8ED]/80 text-[#111827] border border-[#E5E7EB] transition-colors cursor-pointer"
                                 title="Edit Product"
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
@@ -660,8 +647,8 @@ export const AdminPortal: React.FC = () => {
 
             {/* Categories List */}
             {catalogSubTab === 'categories' && (
-              <div className="bg-stone-950 rounded-2xl border border-stone-800 p-6 space-y-4">
-                <h3 className="font-serif-display text-lg font-bold text-white">
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-4">
+                <h3 className="text-lg font-bold text-[#111827]">
                   Menu Categories
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -670,16 +657,16 @@ export const AdminPortal: React.FC = () => {
                     return (
                       <div
                         key={cat.id}
-                        className="p-4 rounded-xl border border-stone-800 bg-stone-900/60 flex items-center justify-between"
+                        className="p-4 rounded-xl border border-[#E5E7EB] bg-[#FFF8ED]/30 flex items-center justify-between"
                       >
                         <div>
-                          <span className="font-bold text-white block">{cat.name}</span>
-                          <span className="text-xs text-amber-400">{sec?.name}</span>
+                          <span className="font-bold text-[#111827] block">{cat.name}</span>
+                          <span className="text-xs text-[#C8102E]">{sec?.name}</span>
                         </div>
                         <button
                           onClick={() => saveCategory({ ...cat, is_active: !cat.is_active })}
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                            cat.is_active ? 'bg-emerald-950 text-emerald-300' : 'bg-rose-950 text-rose-300'
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase cursor-pointer ${
+                            cat.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                           }`}
                         >
                           {cat.is_active ? 'Active' : 'Inactive'}
@@ -693,32 +680,37 @@ export const AdminPortal: React.FC = () => {
 
             {/* Sections List */}
             {catalogSubTab === 'sections' && (
-              <div className="bg-stone-950 rounded-2xl border border-stone-800 p-6 space-y-4">
-                <h3 className="font-serif-display text-lg font-bold text-white">
+              <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-4">
+                <h3 className="text-lg font-bold text-[#111827]">
                   Restaurant Kitchen Sections
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {sections.map((sec) => (
                     <div
                       key={sec.id}
-                      className="rounded-2xl border border-stone-800 bg-stone-900/60 overflow-hidden"
+                      className="rounded-2xl border border-[#E5E7EB] bg-white overflow-hidden shadow-xs"
                     >
-                      <img src={sec.image} alt={sec.name} className="h-32 w-full object-cover" />
+                      <img
+                        src={sec.image}
+                        alt={sec.name}
+                        referrerPolicy="no-referrer"
+                        className="h-32 w-full object-cover"
+                      />
                       <div className="p-4 space-y-2">
                         <div className="flex items-center justify-between">
-                          <h4 className="font-bold text-white">{sec.name}</h4>
+                          <h4 className="font-bold text-[#111827]">{sec.name}</h4>
                           <button
                             onClick={() => saveSection({ ...sec, is_active: !sec.is_active })}
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase cursor-pointer ${
                               sec.is_active
-                                ? 'bg-emerald-950 text-emerald-300'
-                                : 'bg-rose-950 text-rose-300'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'bg-red-50 text-red-700'
                             }`}
                           >
                             {sec.is_active ? 'Active' : 'Inactive'}
                           </button>
                         </div>
-                        <p className="text-xs text-stone-400 line-clamp-2">{sec.description}</p>
+                        <p className="text-xs text-[#475569] line-clamp-2">{sec.description}</p>
                       </div>
                     </div>
                   ))}
@@ -731,13 +723,13 @@ export const AdminPortal: React.FC = () => {
         {/* TAB 3: WHATSAPP LOGS */}
         {activeTab === 'whatsapp' && (
           <div className="space-y-6">
-            <div className="bg-stone-950 p-6 rounded-2xl border border-stone-800 space-y-4">
+            <div className="bg-white p-6 rounded-2xl border border-[#E5E7EB] space-y-4 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-serif-display text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-[#111827]">
                     WhatsApp Order Notifications Log
                   </h3>
-                  <p className="text-xs text-stone-400">
+                  <p className="text-xs text-[#475569]">
                     System records all notifications dispatched to {siteConfig.whatsapp_number}
                   </p>
                 </div>
@@ -745,30 +737,30 @@ export const AdminPortal: React.FC = () => {
 
               <div className="space-y-4">
                 {notifications.length === 0 ? (
-                  <div className="text-center py-8 text-stone-500 text-sm">
+                  <div className="text-center py-8 text-[#475569] text-sm">
                     No WhatsApp notifications logged yet.
                   </div>
                 ) : (
                   notifications.map((log) => (
                     <div
                       key={log.id}
-                      className="p-4 rounded-xl border border-stone-800 bg-stone-900/60 space-y-3"
+                      className="p-4 rounded-xl border border-[#E5E7EB] bg-[#FFF8ED]/30 space-y-3"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
                         <div className="flex items-center gap-3">
-                          <span className="font-mono font-bold text-amber-400 text-sm">
+                          <span className="font-mono font-bold text-[#C8102E] text-sm">
                             {log.order_number}
                           </span>
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                               log.status === 'SENT'
-                                ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                                : 'bg-rose-950 text-rose-300 border border-rose-800'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : 'bg-red-50 text-red-700 border border-red-200'
                             }`}
                           >
                             {log.status}
                           </span>
-                          <span className="text-xs text-stone-400">
+                          <span className="text-xs text-[#475569]">
                             {new Date(log.created_at).toLocaleString()}
                           </span>
                         </div>
@@ -776,7 +768,7 @@ export const AdminPortal: React.FC = () => {
                         {log.status === 'FAILED' && (
                           <button
                             onClick={() => retryNotification(log.id)}
-                            className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs flex items-center gap-1.5 transition-colors"
+                            className="px-3 py-1 rounded-lg bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                           >
                             <RefreshCw className="w-3.5 h-3.5" />
                             <span>Retry Dispatch</span>
@@ -785,12 +777,12 @@ export const AdminPortal: React.FC = () => {
                       </div>
 
                       {log.last_error && (
-                        <div className="p-3 rounded-lg bg-rose-950/40 border border-rose-900 text-xs text-rose-300 font-mono">
+                        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-mono">
                           Error: {log.last_error} (Attempt {log.attempts})
                         </div>
                       )}
 
-                      <div className="bg-stone-950 p-3 rounded-lg border border-stone-850 font-mono text-xs text-stone-300 whitespace-pre-wrap max-h-36 overflow-y-auto">
+                      <div className="bg-white p-3 rounded-lg border border-[#E5E7EB] font-mono text-xs text-[#111827] whitespace-pre-wrap max-h-36 overflow-y-auto">
                         {log.message_text}
                       </div>
                     </div>
@@ -803,12 +795,12 @@ export const AdminPortal: React.FC = () => {
 
         {/* TAB 4: SETTINGS */}
         {activeTab === 'settings' && (
-          <div className="bg-stone-950 p-6 sm:p-10 rounded-2xl border border-stone-800 space-y-6 max-w-3xl">
+          <div className="bg-white p-6 sm:p-10 rounded-2xl border border-[#E5E7EB] space-y-6 max-w-3xl shadow-xs">
             <div>
-              <h3 className="font-serif-display text-xl font-bold text-white">
+              <h3 className="text-xl font-extrabold text-[#111827]">
                 Restaurant & Platform Configuration
               </h3>
-              <p className="text-xs text-stone-400">
+              <p className="text-xs text-[#475569]">
                 Update restaurant profile, contact channels, and delivery fee.
               </p>
             </div>
@@ -822,7 +814,7 @@ export const AdminPortal: React.FC = () => {
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#111827] mb-1">
                     Restaurant Name
                   </label>
                   <input
@@ -831,12 +823,12 @@ export const AdminPortal: React.FC = () => {
                     onChange={(e) =>
                       setConfigForm({ ...configForm, restaurant_name: e.target.value })
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-sm text-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-sm text-[#111827] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#C8102E] focus:border-[#C8102E] min-h-[44px]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#111827] mb-1">
                     WhatsApp Number (for order dispatch)
                   </label>
                   <input
@@ -845,26 +837,26 @@ export const AdminPortal: React.FC = () => {
                     onChange={(e) =>
                       setConfigForm({ ...configForm, whatsapp_number: e.target.value })
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-sm text-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-sm text-[#111827] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#C8102E] focus:border-[#C8102E] min-h-[44px]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#111827] mb-1">
                     Phone Number
                   </label>
                   <input
                     type="text"
                     value={configForm.phone}
                     onChange={(e) => setConfigForm({ ...configForm, phone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-sm text-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-sm text-[#111827] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#C8102E] focus:border-[#C8102E] min-h-[44px]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#111827] mb-1">
                     Default Delivery Fee (₦)
                   </label>
                   <input
@@ -876,39 +868,39 @@ export const AdminPortal: React.FC = () => {
                         default_delivery_fee: Number(e.target.value),
                       })
                     }
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-sm text-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-sm text-[#111827] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#C8102E] focus:border-[#C8102E] min-h-[44px]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#111827] mb-1">
                   Physical Address
                 </label>
                 <input
                   type="text"
                   value={configForm.address}
                   onChange={(e) => setConfigForm({ ...configForm, address: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-sm text-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-sm text-[#111827] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#C8102E] focus:border-[#C8102E] min-h-[44px]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#111827] mb-1">
                   Opening Hours
                 </label>
                 <input
                   type="text"
                   value={configForm.opening_hours}
                   onChange={(e) => setConfigForm({ ...configForm, opening_hours: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-stone-900 border border-stone-800 text-sm text-stone-100 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-sm text-[#111827] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#C8102E] focus:border-[#C8102E] min-h-[44px]"
                 />
               </div>
 
               <div className="pt-4">
                 <button
                   type="submit"
-                  className="px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs uppercase tracking-wider transition-colors"
+                  className="px-6 py-3 rounded-xl bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-xs uppercase tracking-wider transition-colors cursor-pointer min-h-[44px]"
                 >
                   Save Configuration
                 </button>
@@ -920,15 +912,15 @@ export const AdminPortal: React.FC = () => {
 
       {/* Edit/Create Product Modal */}
       {editingProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-sm">
-          <div className="bg-stone-900 rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-stone-800 space-y-5">
-            <h3 className="font-serif-display text-xl font-bold text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-[#E5E7EB] space-y-5 shadow-xl">
+            <h3 className="text-xl font-bold text-[#111827]">
               {editingProduct.id ? 'Edit Product' : 'Add New Product'}
             </h3>
 
             <form onSubmit={handleSaveProductSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#111827] mb-1">
                   Product Name
                 </label>
                 <input
@@ -938,13 +930,13 @@ export const AdminPortal: React.FC = () => {
                   onChange={(e) =>
                     setEditingProduct({ ...editingProduct, name: e.target.value })
                   }
-                  className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm text-white"
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-sm text-[#111827] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#C8102E] min-h-[40px]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#111827] mb-1">
                     Category
                   </label>
                   <select
@@ -953,7 +945,7 @@ export const AdminPortal: React.FC = () => {
                     onChange={(e) =>
                       setEditingProduct({ ...editingProduct, category_id: e.target.value })
                     }
-                    className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm text-white"
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-sm text-[#111827] focus:bg-white focus:outline-none min-h-[40px]"
                   >
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>
@@ -964,7 +956,7 @@ export const AdminPortal: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#111827] mb-1">
                     Price (₦)
                   </label>
                   <input
@@ -974,13 +966,13 @@ export const AdminPortal: React.FC = () => {
                     onChange={(e) =>
                       setEditingProduct({ ...editingProduct, price: Number(e.target.value) })
                     }
-                    className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm text-white"
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-sm text-[#111827] focus:bg-white focus:outline-none min-h-[40px]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#111827] mb-1">
                   Image URL
                 </label>
                 <input
@@ -990,12 +982,12 @@ export const AdminPortal: React.FC = () => {
                     setEditingProduct({ ...editingProduct, image: e.target.value })
                   }
                   placeholder="https://..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm text-white"
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-sm text-[#111827] focus:bg-white focus:outline-none min-h-[40px]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-[#111827] mb-1">
                   Description
                 </label>
                 <textarea
@@ -1004,45 +996,47 @@ export const AdminPortal: React.FC = () => {
                   onChange={(e) =>
                     setEditingProduct({ ...editingProduct, description: e.target.value })
                   }
-                  className="w-full px-3.5 py-2 rounded-xl bg-stone-950 border border-stone-800 text-sm text-white"
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#FFF8ED]/30 border border-[#E5E7EB] text-sm text-[#111827] focus:bg-white focus:outline-none"
                 />
               </div>
 
               <div className="flex gap-6 pt-2">
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-stone-300">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#111827]">
                   <input
                     type="checkbox"
                     checked={editingProduct.is_available ?? true}
                     onChange={(e) =>
                       setEditingProduct({ ...editingProduct, is_available: e.target.checked })
                     }
+                    className="text-[#C8102E] focus:ring-[#C8102E]"
                   />
                   <span>Is Available</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-stone-300">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#111827]">
                   <input
                     type="checkbox"
                     checked={editingProduct.is_featured ?? false}
                     onChange={(e) =>
                       setEditingProduct({ ...editingProduct, is_featured: e.target.checked })
                     }
+                    className="text-[#C8102E] focus:ring-[#C8102E]"
                   />
                   <span>Is Featured</span>
                 </label>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-stone-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#E5E7EB]">
                 <button
                   type="button"
                   onClick={() => setEditingProduct(null)}
-                  className="px-4 py-2 rounded-xl bg-stone-800 text-stone-300 text-xs font-bold"
+                  className="px-4 py-2 rounded-xl bg-white border border-[#E5E7EB] text-[#475569] hover:text-[#111827] text-xs font-semibold cursor-pointer min-h-[40px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-amber-500 text-stone-950 text-xs font-bold hover:bg-amber-400"
+                  className="px-5 py-2 rounded-xl bg-[#C8102E] hover:bg-[#A70D26] text-white text-xs font-semibold cursor-pointer min-h-[40px]"
                 >
                   Save Product
                 </button>
@@ -1054,85 +1048,85 @@ export const AdminPortal: React.FC = () => {
 
       {/* Inspect Order Detail Modal */}
       {selectedOrderModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/80 backdrop-blur-sm">
-          <div className="bg-stone-900 rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-stone-800 space-y-5 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-stone-800 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-[#E5E7EB] space-y-5 max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-3">
               <div>
-                <span className="text-xs font-mono text-amber-400 font-bold block">
+                <span className="text-xs font-mono text-[#C8102E] font-bold block">
                   {selectedOrderModal.order_number}
                 </span>
-                <h3 className="font-serif-display text-xl font-bold text-white">
+                <h3 className="text-xl font-extrabold text-[#111827]">
                   Order Details
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedOrderModal(null)}
-                className="p-1 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-white"
+                className="p-2 rounded-lg hover:bg-[#FFF8ED] text-[#475569] hover:text-[#111827] cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-3 text-xs text-stone-300">
+            <div className="space-y-3 text-xs text-[#111827]">
               <div className="flex justify-between">
-                <span className="text-stone-400">Customer:</span>
-                <span className="font-bold text-white">{selectedOrderModal.customer_name}</span>
+                <span className="text-[#475569]">Customer:</span>
+                <span className="font-bold text-[#111827]">{selectedOrderModal.customer_name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-stone-400">Phone:</span>
+                <span className="text-[#475569]">Phone:</span>
                 <span>{selectedOrderModal.customer_phone}</span>
               </div>
               {selectedOrderModal.customer_email && (
                 <div className="flex justify-between">
-                  <span className="text-stone-400">Email:</span>
+                  <span className="text-[#475569]">Email:</span>
                   <span>{selectedOrderModal.customer_email}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-stone-400">Fulfillment:</span>
-                <span className="font-bold uppercase text-amber-400">
+                <span className="text-[#475569]">Fulfillment:</span>
+                <span className="font-bold uppercase text-[#C8102E]">
                   {selectedOrderModal.order_type}
                 </span>
               </div>
               {selectedOrderModal.delivery_address && (
                 <div className="flex justify-between">
-                  <span className="text-stone-400">Delivery Address:</span>
+                  <span className="text-[#475569]">Delivery Address:</span>
                   <span className="text-right max-w-xs">{selectedOrderModal.delivery_address}</span>
                 </div>
               )}
               {selectedOrderModal.customer_note && (
                 <div className="flex justify-between">
-                  <span className="text-stone-400">Kitchen Note:</span>
+                  <span className="text-[#475569]">Kitchen Note:</span>
                   <span className="text-right italic">{selectedOrderModal.customer_note}</span>
                 </div>
               )}
             </div>
 
             {/* Snapshotted Items */}
-            <div className="border-t border-stone-800 pt-3 space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-stone-400">
+            <div className="border-t border-[#E5E7EB] pt-3 space-y-2">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-[#475569]">
                 Snapshotted Items
               </h4>
-              <div className="divide-y divide-stone-850">
+              <div className="divide-y divide-[#E5E7EB]">
                 {selectedOrderModal.items.map((i) => (
                   <div key={i.id} className="py-2 flex justify-between text-xs">
                     <span>
                       {i.quantity} × {i.product_name}
                     </span>
-                    <span className="font-mono">{formatMoney(i.subtotal)}</span>
+                    <span className="font-mono font-bold text-[#111827]">{formatMoney(i.subtotal)}</span>
                   </div>
                 ))}
               </div>
-              <div className="border-t border-stone-800 pt-2 flex justify-between text-sm font-bold text-white">
+              <div className="border-t border-[#E5E7EB] pt-2 flex justify-between text-sm font-bold text-[#111827]">
                 <span>Total Due</span>
-                <span className="text-amber-400">{formatMoney(selectedOrderModal.total)}</span>
+                <span className="text-[#C8102E] font-black">{formatMoney(selectedOrderModal.total)}</span>
               </div>
             </div>
 
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setSelectedOrderModal(null)}
-                className="px-4 py-2 rounded-xl bg-stone-800 text-stone-200 text-xs font-bold"
+                className="px-4 py-2 rounded-xl bg-[#FFF8ED] hover:bg-[#FFF8ED]/80 text-[#111827] border border-[#E5E7EB] text-xs font-semibold cursor-pointer min-h-[40px]"
               >
                 Close
               </button>

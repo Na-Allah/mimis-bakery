@@ -9,18 +9,18 @@ export const FeaturedProducts: React.FC = () => {
   if (featuredProducts.length === 0) return null;
 
   return (
-    <section id="featured-products-section" className="py-16 sm:py-20 bg-stone-50">
+    <section id="featured-products-section" className="py-12 sm:py-16 bg-[#FFF8ED]/50 border-b border-[#E5E7EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wider mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#D4AF37]/50 text-[#111827] text-xs font-semibold uppercase tracking-wider mb-2 shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-[#C8102E]" />
               <span>Customer Favorites</span>
             </div>
-            <h2 className="font-serif-display text-3xl sm:text-4xl font-bold text-stone-900">
-              Chef's Featured Selections
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111827]">
+              Chef&apos;s Featured Selections
             </h2>
-            <p className="text-stone-600 text-sm mt-1">
+            <p className="text-[#475569] text-sm mt-1">
               Hand-picked specials from our wood grill pit and bakery ovens.
             </p>
           </div>
@@ -28,7 +28,7 @@ export const FeaturedProducts: React.FC = () => {
           <button
             id="featured-btn-view-all"
             onClick={() => navigateTo({ type: 'menu' })}
-            className="inline-flex items-center gap-2 text-sm font-bold text-amber-700 hover:text-amber-800 transition-colors group"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#C8102E] hover:text-[#A70D26] transition-colors group cursor-pointer"
           >
             <span>View All Menu Items</span>
             <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />

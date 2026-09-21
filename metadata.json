@@ -1,6 +1,6 @@
 {
   "name": "Restaurant Ordering Platform",
-  "description": "A modern restaurant menu and ordering platform featuring Bakery, Food & Drinks, and Meat Grill sections with shopping cart, pickup/delivery checkout, and WhatsApp order dispatch.",
+  "description": "Mimis Restaurant - Not just by Name. Light-themed ordering platform featuring artisanal bakery, kitchen dishes, craft drinks, and meat grill with instant pickup and delivery checkout.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

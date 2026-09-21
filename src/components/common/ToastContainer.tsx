@@ -16,28 +16,28 @@ export const ToastContainer: React.FC = () => {
         <div
           key={toast.id}
           id={`toast-${toast.id}`}
-          className={`pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-lg border text-sm font-medium transition-all transform translate-y-0 ${
+          className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-xl border text-sm font-medium transition-all bg-white text-[#111827] ${
             toast.type === 'success'
-              ? 'bg-stone-900 text-stone-50 border-stone-800'
+              ? 'border-[#16A34A]/30'
               : toast.type === 'error'
-              ? 'bg-rose-950 text-rose-50 border-rose-800'
-              : 'bg-stone-900 text-stone-100 border-stone-800'
+              ? 'border-[#EF4444]/30'
+              : 'border-[#3B82F6]/30'
           }`}
         >
           {toast.type === 'success' && (
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-5 h-5 text-[#16A34A] shrink-0 mt-0.5" />
           )}
           {toast.type === 'error' && (
-            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-[#EF4444] shrink-0 mt-0.5" />
           )}
           {toast.type === 'info' && (
-            <Info className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-[#3B82F6] shrink-0 mt-0.5" />
           )}
           <span className="flex-1 leading-snug">{toast.message}</span>
           <button
             id={`btn-close-toast-${toast.id}`}
             onClick={() => removeToast(toast.id)}
-            className="text-stone-400 hover:text-white p-1 -mr-1 -mt-1 rounded-lg transition-colors"
+            className="text-[#9CA3AF] hover:text-[#111827] p-1 -mr-1 -mt-1 rounded-lg transition-colors cursor-pointer"
             aria-label="Close notification"
           >
             <X className="w-4 h-4" />
