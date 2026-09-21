@@ -760,20 +760,27 @@ class StorageService {
     return { success: true, user: safeUser };
   }
 
+  public isOrderOwnedByUser(order: Order, user: User | null): boolean {
+    if (!user) return false;
+    if (order.user_id && order.user_id === user.id) return true;
+    if (order.customer_email && user.email && order.customer_email.trim().toLowerCase() === user.email.trim().toLowerCase()) return true;
+    if (user.phone && order.customer_phone) {
+      const userPhone = user.phone.replace(/\D/g, '');
+      const orderPhone = order.customer_phone.replace(/\D/g, '');
+      if (userPhone && orderPhone && userPhone === orderPhone) return true;
+    }
+    return false;
+  }
+
+  public canUserTrackOrder(order: Order, user: User | null): boolean {
+    if (!user) return false;
+    if (user.role === 'admin') return true;
+    return this.isOrderOwnedByUser(order, user);
+  }
+
   public getOrdersForUser(user: User): Order[] {
     const orders = this.getOrders();
-    const userPhone = user.phone ? user.phone.replace(/\D/g, '') : '';
-    const userEmail = user.email.toLowerCase();
-
-    return orders.filter((o) => {
-      if (o.user_id && o.user_id === user.id) return true;
-      if (o.customer_email && o.customer_email.toLowerCase() === userEmail) return true;
-      if (userPhone && o.customer_phone) {
-        const orderPhone = o.customer_phone.replace(/\D/g, '');
-        if (orderPhone && orderPhone === userPhone) return true;
-      }
-      return false;
-    });
+    return orders.filter((o) => this.isOrderOwnedByUser(o, user));
   }
 
   // --- BACKWARDS COMPATIBILITY WRAPPERS ---

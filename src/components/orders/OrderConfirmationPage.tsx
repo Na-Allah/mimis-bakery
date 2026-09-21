@@ -11,6 +11,8 @@ import {
   Truck,
   Store,
   Share2,
+  ShieldAlert,
+  Lock,
 } from 'lucide-react';
 import {
   buildOrderWhatsAppMessage,
@@ -24,9 +26,10 @@ interface OrderConfirmationPageProps {
 export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
   orderNumber,
 }) => {
-  const { orders, siteConfig, formatMoney, navigateTo } = useRestaurant();
+  const { orders, siteConfig, formatMoney, navigateTo, canUserTrackOrder, currentUser } =
+    useRestaurant();
 
-  const order = orders.find((o) => o.order_number === orderNumber);
+  const order = orders.find((o) => o.order_number.trim().toLowerCase() === orderNumber.trim().toLowerCase());
 
   if (!order) {
     return (
@@ -41,10 +44,60 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
           <button
             id="order-btn-notfound-home"
             onClick={() => navigateTo({ type: 'home' })}
-            className="px-6 py-2.5 rounded-xl bg-stone-900 text-amber-400 font-bold text-xs uppercase"
+            className="px-6 py-2.5 rounded-xl bg-stone-900 text-amber-400 font-bold text-xs uppercase cursor-pointer"
           >
             Return to Home
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Security & Ownership Gate: Users can only track/view orders that belong to them
+  const canView = canUserTrackOrder(order);
+  if (!canView) {
+    return (
+      <div id="order-access-restricted-page" className="min-h-screen bg-stone-100/70 py-16 px-4">
+        <div className="max-w-md mx-auto text-center bg-white p-8 rounded-3xl border border-stone-200 shadow-sm space-y-5">
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto shadow-sm">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+          <div className="space-y-1.5">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200">
+              <Lock className="w-3 h-3" /> Access Restricted
+            </span>
+            <h2 className="font-serif-display text-2xl font-bold text-stone-900">
+              Order Belongs to Another Account
+            </h2>
+            <p className="text-xs text-stone-500 max-w-sm mx-auto leading-relaxed">
+              For customer privacy and security, you can only track and inspect orders placed by your account.
+            </p>
+          </div>
+
+          <div className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200 text-left space-y-1 text-xs">
+            <div className="text-stone-400 text-[11px]">Requested Order:</div>
+            <div className="font-mono font-bold text-stone-800">{order.order_number}</div>
+            <div className="pt-2 border-t border-stone-200 text-stone-500 text-[11px]">
+              Active User: <strong className="text-stone-800">{currentUser?.name}</strong> ({currentUser?.email})
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <button
+              id="order-btn-view-my-orders"
+              onClick={() => navigateTo({ type: 'my-orders' })}
+              className="flex-1 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs transition cursor-pointer"
+            >
+              View My Orders
+            </button>
+            <button
+              id="order-btn-track-other"
+              onClick={() => navigateTo({ type: 'track-order' })}
+              className="flex-1 py-3 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold text-xs transition cursor-pointer"
+            >
+              Track Another Order
+            </button>
+          </div>
         </div>
       </div>
     );

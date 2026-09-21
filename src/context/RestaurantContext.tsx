@@ -92,6 +92,8 @@ interface RestaurantContextType {
   logout: () => void;
   updateProfile: (updates: Partial<User>) => { success: boolean; user?: User; error?: string };
   userOrders: Order[];
+  canUserTrackOrder: (order: Order) => boolean;
+  isOrderOwnedByUser: (order: Order) => boolean;
 
   // Admin Authentication (backward-compatible aliases)
   adminUser: AdminUser | null;
@@ -223,6 +225,20 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (!currentUser) return [];
     return storageService.getOrdersForUser(currentUser);
   }, [currentUser, orders]);
+
+  const canUserTrackOrder = useCallback(
+    (order: Order) => {
+      return storageService.canUserTrackOrder(order, currentUser);
+    },
+    [currentUser]
+  );
+
+  const isOrderOwnedByUser = useCallback(
+    (order: Order) => {
+      return storageService.isOrderOwnedByUser(order, currentUser);
+    },
+    [currentUser]
+  );
 
   // Backwards compatibility aliases for admin authentication
   const adminUser = isAdmin ? currentUser : null;
@@ -542,6 +558,8 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         logout,
         updateProfile,
         userOrders,
+        canUserTrackOrder,
+        isOrderOwnedByUser,
         // Admin compatibility
         adminUser,
         isAdminAuthenticated,
