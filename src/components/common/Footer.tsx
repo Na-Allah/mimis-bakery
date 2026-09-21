@@ -1,10 +1,17 @@
 import React from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
-import { Flame, Phone, MapPin, Clock, Mail, MessageSquare } from 'lucide-react';
+import { Flame, Phone, MapPin, Clock, Mail, MessageSquare, ShieldAlert, Lock } from 'lucide-react';
 import { buildWhatsAppChatUrl } from '../../services/notificationService';
 
 export const Footer: React.FC = () => {
-  const { siteConfig, activeSections, navigateTo } = useRestaurant();
+  const {
+    siteConfig,
+    activeSections,
+    navigateTo,
+    isAdminAuthenticated,
+    adminUser,
+    setIsAdminLoginModalOpen,
+  } = useRestaurant();
 
   const directWhatsAppUrl = buildWhatsAppChatUrl(
     siteConfig.whatsapp_number,
@@ -127,13 +134,26 @@ export const Footer: React.FC = () => {
               Flat Delivery: {siteConfig.currency_symbol}{siteConfig.default_delivery_fee.toLocaleString()} (Free in-store pickup)
             </div>
             <div className="pt-2">
-              <button
-                id="footer-btn-admin-portal"
-                onClick={() => navigateTo({ type: 'admin' })}
-                className="text-xs text-stone-400 hover:text-white underline underline-offset-4"
-              >
-                Restaurant Staff Portal (Admin)
-              </button>
+              {isAdminAuthenticated ? (
+                <button
+                  id="footer-btn-admin-portal"
+                  onClick={() => navigateTo({ type: 'admin' })}
+                  className="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1.5 transition-colors"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5" />
+                  <span>Admin Portal ({adminUser?.name || 'Administrator'})</span>
+                </button>
+              ) : (
+                <button
+                  id="footer-btn-staff-login"
+                  onClick={() => setIsAdminLoginModalOpen(true)}
+                  className="text-[11px] text-stone-500 hover:text-stone-300 flex items-center gap-1.5 transition-colors"
+                  title="Staff Management Portal Sign In"
+                >
+                  <Lock className="w-3 h-3 text-stone-500" />
+                  <span>Restaurant Staff Sign In</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

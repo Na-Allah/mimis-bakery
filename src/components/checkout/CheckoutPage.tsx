@@ -25,14 +25,29 @@ export const CheckoutPage: React.FC = () => {
     formatMoney,
     createOrder,
     navigateTo,
+    currentUser,
+    isAuthenticated,
+    openAuthModal,
   } = useRestaurant();
 
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState(currentUser?.name || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [email, setEmail] = useState(currentUser?.email || '');
   const [orderType, setOrderType] = useState<OrderType>('DELIVERY');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState(currentUser?.default_address || '');
   const [customerNote, setCustomerNote] = useState('');
+
+  // Update fields if user logs in while on checkout
+  React.useEffect(() => {
+    if (currentUser) {
+      if (!fullName) setFullName(currentUser.name);
+      if (!email) setEmail(currentUser.email);
+      if (!phone && currentUser.phone) setPhone(currentUser.phone);
+      if (!deliveryAddress && currentUser.default_address) {
+        setDeliveryAddress(currentUser.default_address);
+      }
+    }
+  }, [currentUser]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

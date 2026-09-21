@@ -11,6 +11,9 @@ import {
   ActiveView,
   OrderStatus,
   OrderType,
+  AdminUser,
+  User,
+  UserRole,
 } from '../types';
 import { storageService } from '../services/storageService';
 import { notificationService } from '../services/notificationService';
@@ -69,6 +72,35 @@ interface RestaurantContextType {
   updateSiteConfig: (config: SiteConfiguration) => void;
   resetToDefaults: () => void;
 
+  // Complete User & Role Authentication
+  currentUser: User | null;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isAuthModalOpen: boolean;
+  authModalTab: 'login' | 'register';
+  openAuthModal: (tab?: 'login' | 'register') => void;
+  closeAuthModal: () => void;
+  login: (email: string, password: string) => { success: boolean; user?: User; error?: string };
+  register: (params: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    default_address?: string;
+    role?: UserRole;
+  }) => { success: boolean; user?: User; error?: string };
+  logout: () => void;
+  updateProfile: (updates: Partial<User>) => { success: boolean; user?: User; error?: string };
+  userOrders: Order[];
+
+  // Admin Authentication (backward-compatible aliases)
+  adminUser: AdminUser | null;
+  isAdminAuthenticated: boolean;
+  isAdminLoginModalOpen: boolean;
+  setIsAdminLoginModalOpen: (open: boolean) => void;
+  loginAdmin: (email: string, password: string) => { success: boolean; error?: string };
+  logoutAdmin: () => void;
+
   // Toast
   toasts: ToastInfo[];
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
@@ -94,16 +126,6 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [selectedProductModal, setSelectedProductModal] = useState<Product | null>(null);
   const [toasts, setToasts] = useState<ToastInfo[]>([]);
 
-  // Sync state helpers
-  const refreshCatalog = useCallback(() => {
-    setSections(storageService.getSections());
-    setCategories(storageService.getCategories());
-    setProducts(storageService.getProducts());
-    setSiteConfig(storageService.getSiteConfig());
-    setOrders(storageService.getOrders());
-    setNotifications(storageService.getNotifications());
-  }, []);
-
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = `toast-${Date.now()}-${Math.random()}`;
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -114,6 +136,136 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  // User Authentication & Roles State
+  const [currentUser, setCurrentUser] = useState<User | null>(() => storageService.getCurrentUser());
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
+
+  const isAuthenticated = Boolean(currentUser);
+  const isAdmin = Boolean(currentUser && currentUser.role === 'admin');
+
+  const openAuthModal = useCallback((tab: 'login' | 'register' = 'login') => {
+    setAuthModalTab(tab);
+    setIsAuthModalOpen(true);
+  }, []);
+
+  const closeAuthModal = useCallback(() => {
+    setIsAuthModalOpen(false);
+  }, []);
+
+  const login = useCallback(
+    (email: string, password: string) => {
+      const result = storageService.loginUser(email, password);
+      if (result.success && result.user) {
+        setCurrentUser(result.user);
+        setIsAuthModalOpen(false);
+        showToast(
+          `Welcome back, ${result.user.name}! ${result.user.role === 'admin' ? '(Administrator)' : ''}`,
+          'success'
+        );
+        return { success: true, user: result.user };
+      } else {
+        return { success: false, error: result.error || 'Authentication failed.' };
+      }
+    },
+    [showToast]
+  );
+
+  const register = useCallback(
+    (params: {
+      name: string;
+      email: string;
+      password: string;
+      phone?: string;
+      default_address?: string;
+      role?: UserRole;
+    }) => {
+      const result = storageService.registerUser(params);
+      if (result.success && result.user) {
+        setCurrentUser(result.user);
+        setIsAuthModalOpen(false);
+        showToast(`Account created! Welcome to the restaurant, ${result.user.name}.`, 'success');
+        return { success: true, user: result.user };
+      } else {
+        return { success: false, error: result.error || 'Registration failed.' };
+      }
+    },
+    [showToast]
+  );
+
+  const logout = useCallback(() => {
+    storageService.logoutUser();
+    setCurrentUser(null);
+    showToast('Signed out successfully.', 'info');
+    // If currently on admin or restricted view, redirect back to home
+    setActiveView((curr) =>
+      curr.type === 'admin' || curr.type === 'my-orders' ? { type: 'home' } : curr
+    );
+  }, [showToast]);
+
+  const updateProfile = useCallback(
+    (updates: Partial<User>) => {
+      if (!currentUser) return { success: false, error: 'Not signed in' };
+      const res = storageService.updateUserProfile(currentUser.id, updates);
+      if (res.success && res.user) {
+        setCurrentUser(res.user);
+        showToast('Profile updated successfully!', 'success');
+        return { success: true, user: res.user };
+      }
+      return { success: false, error: res.error || 'Failed to update profile.' };
+    },
+    [currentUser, showToast]
+  );
+
+  const userOrders = useMemo(() => {
+    if (!currentUser) return [];
+    return storageService.getOrdersForUser(currentUser);
+  }, [currentUser, orders]);
+
+  // Backwards compatibility aliases for admin authentication
+  const adminUser = isAdmin ? currentUser : null;
+  const isAdminAuthenticated = isAdmin;
+  const isAdminLoginModalOpen = isAuthModalOpen;
+  const setIsAdminLoginModalOpen = useCallback(
+    (open: boolean) => {
+      if (open) {
+        openAuthModal('login');
+      } else {
+        closeAuthModal();
+      }
+    },
+    [openAuthModal, closeAuthModal]
+  );
+
+  const loginAdmin = useCallback(
+    (email: string, password: string) => {
+      const res = login(email, password);
+      if (res.success && res.user) {
+        if (res.user.role !== 'admin') {
+          return {
+            success: false,
+            error: `Access denied. Signed in as ${res.user.name} (${res.user.role}). Administrator role required.`,
+          };
+        }
+        return { success: true };
+      }
+      return { success: false, error: res.error };
+    },
+    [login]
+  );
+
+  const logoutAdmin = logout;
+
+  // Sync state helpers
+  const refreshCatalog = useCallback(() => {
+    setSections(storageService.getSections());
+    setCategories(storageService.getCategories());
+    setProducts(storageService.getProducts());
+    setSiteConfig(storageService.getSiteConfig());
+    setOrders(storageService.getOrders());
+    setNotifications(storageService.getNotifications());
   }, []);
 
   // Format money helper
@@ -232,6 +384,7 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const idempotencyToken = `tok-${params.customer_phone}-${cart.map((c) => `${c.product_id}:${c.quantity}`).join('-')}`;
       const result = await storageService.createOrder({
         ...params,
+        user_id: currentUser?.id,
         cart_items: cart,
         idempotency_token: idempotencyToken,
       });
@@ -247,7 +400,7 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return { success: false, error: result.error };
       }
     },
-    [cart, showToast]
+    [cart, currentUser, showToast]
   );
 
   const updateOrderStatus = useCallback(
@@ -376,6 +529,26 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         saveSection,
         updateSiteConfig,
         resetToDefaults,
+        // Complete User & Role Authentication
+        currentUser,
+        isAuthenticated,
+        isAdmin,
+        isAuthModalOpen,
+        authModalTab,
+        openAuthModal,
+        closeAuthModal,
+        login,
+        register,
+        logout,
+        updateProfile,
+        userOrders,
+        // Admin compatibility
+        adminUser,
+        isAdminAuthenticated,
+        isAdminLoginModalOpen,
+        setIsAdminLoginModalOpen,
+        loginAdmin,
+        logoutAdmin,
         toasts,
         showToast,
         removeToast,

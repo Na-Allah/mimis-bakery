@@ -16,6 +16,10 @@ import { OrderConfirmationPage } from './components/orders/OrderConfirmationPage
 import { OrderTrackerModal } from './components/orders/OrderTrackerModal';
 import { ProductDetailModal } from './components/catalog/ProductDetailModal';
 import { AdminPortal } from './components/admin/AdminPortal';
+import { AdminLoginForm } from './components/admin/AdminLoginForm';
+import { MyOrdersPage } from './components/orders/MyOrdersPage';
+import { AuthModal } from './components/auth/AuthModal';
+import { AuthScreen } from './components/auth/AuthScreen';
 
 const MainContent: React.FC = () => {
   const { activeView } = useRestaurant();
@@ -69,6 +73,13 @@ const MainContent: React.FC = () => {
         </main>
       );
 
+    case 'my-orders':
+      return (
+        <main id="view-my-orders">
+          <MyOrdersPage />
+        </main>
+      );
+
     case 'admin':
       return (
         <main id="view-admin">
@@ -88,22 +99,43 @@ const MainContent: React.FC = () => {
   }
 };
 
+const AppShell: React.FC = () => {
+  const { isAuthenticated } = useRestaurant();
+
+  // Strict Authentication Gate: Users can only start viewing pages only if they sign in
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-stone-950 text-stone-100">
+        <AuthScreen />
+        <ToastContainer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen bg-stone-50 text-stone-900 selection:bg-amber-500 selection:text-white">
+      <Navbar />
+      <div className="flex-1">
+        <MainContent />
+      </div>
+      <Footer />
+
+      {/* Global Overlays & Modals */}
+      <CartDrawer />
+      <ProductDetailModal />
+      <ToastContainer />
+      <MobileCartBar />
+
+      {/* Unified Authentication Modal (Customer Register/Login + Admin Access) */}
+      <AuthModal />
+    </div>
+  );
+};
+
 export default function App() {
   return (
     <RestaurantProvider>
-      <div className="flex flex-col min-h-screen bg-stone-50 text-stone-900 selection:bg-amber-500 selection:text-white">
-        <Navbar />
-        <div className="flex-1">
-          <MainContent />
-        </div>
-        <Footer />
-
-        {/* Global Overlays & Modals */}
-        <CartDrawer />
-        <ProductDetailModal />
-        <ToastContainer />
-        <MobileCartBar />
-      </div>
+      <AppShell />
     </RestaurantProvider>
   );
 }

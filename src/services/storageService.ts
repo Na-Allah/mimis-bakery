@@ -9,6 +9,10 @@ import {
   OrderStatus,
   NotificationLog,
   SiteConfiguration,
+  AdminUser,
+  User,
+  UserRole,
+  StoredUser,
 } from '../types';
 import {
   initialSections,
@@ -27,7 +31,53 @@ const STORAGE_KEYS = {
   SITE_CONFIG: 'restaurant_site_config_v1',
   CART: 'restaurant_session_cart_v1',
   SUBMISSION_TOKENS: 'restaurant_submission_tokens_v1',
+  ADMIN_AUTH: 'restaurant_admin_auth_v1',
+  USERS: 'restaurant_registered_users_v2',
+  AUTH_SESSION: 'restaurant_auth_current_user_v2',
 };
+
+export const initialUsers: StoredUser[] = [
+  {
+    id: 'user-admin-01',
+    email: 'asmuhammad42@gmail.com',
+    name: 'Muhammad',
+    role: 'admin',
+    phone: '+234 803 000 0001',
+    password_hash: 'admin123',
+    created_at: '2026-01-01T00:00:00.000Z',
+    default_address: 'Restaurant HQ, Victoria Island, Lagos',
+  },
+  {
+    id: 'user-admin-02',
+    email: 'admin@restaurant.com',
+    name: 'Restaurant Head Chef & Manager',
+    role: 'admin',
+    phone: '+234 802 000 0002',
+    password_hash: 'admin123',
+    created_at: '2026-01-01T00:00:00.000Z',
+    default_address: '15 Bishop Oluwole St, Victoria Island, Lagos',
+  },
+  {
+    id: 'user-cust-01',
+    email: 'adeola@example.com',
+    name: 'Adeola Davies',
+    role: 'customer',
+    phone: '0803 123 4567',
+    password_hash: 'customer123',
+    created_at: '2026-02-15T10:00:00.000Z',
+    default_address: 'Flat 4B, Admiralty Way, Lekki Phase 1, Lagos',
+  },
+  {
+    id: 'user-cust-02',
+    email: 'customer@example.com',
+    name: 'Chidi Okafor',
+    role: 'customer',
+    phone: '0814 555 7890',
+    password_hash: 'customer123',
+    created_at: '2026-03-01T12:00:00.000Z',
+    default_address: '12 Marina Road, Victoria Island, Lagos',
+  },
+];
 
 class StorageService {
   private isBrowser = typeof window !== 'undefined';
@@ -60,6 +110,9 @@ class StorageService {
     if (!localStorage.getItem(STORAGE_KEYS.SECTIONS)) {
       this.resetToSeedData();
     }
+    if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
+      this.setItem(STORAGE_KEYS.USERS, initialUsers);
+    }
   }
 
   public resetToSeedData(): void {
@@ -68,6 +121,7 @@ class StorageService {
     this.setItem(STORAGE_KEYS.CATEGORIES, initialCategories);
     this.setItem(STORAGE_KEYS.PRODUCTS, initialProducts);
     this.setItem(STORAGE_KEYS.SITE_CONFIG, initialSiteConfig);
+    this.setItem(STORAGE_KEYS.USERS, initialUsers);
     // Keep or seed a sample order for immediate rich preview
     const sampleOrders = this.createInitialSampleOrders();
     this.setItem(STORAGE_KEYS.ORDERS, sampleOrders.orders);
@@ -284,6 +338,7 @@ class StorageService {
     customer_note?: string;
     cart_items: CartItem[];
     idempotency_token?: string;
+    user_id?: string;
   }): Promise<{ success: boolean; order?: Order; error?: string }> {
     // 1. Validate customer data
     const name = params.customer_name?.trim();
@@ -364,6 +419,7 @@ class StorageService {
     const newOrder: Order = {
       id: orderId,
       order_number: orderNumber,
+      user_id: params.user_id,
       customer_name: name,
       customer_phone: phone,
       customer_email: params.customer_email?.trim() || undefined,
@@ -505,6 +561,255 @@ class StorageService {
     };
 
     return { orders: [sampleOrder], notifications: [sampleNotification] };
+  }
+
+  // --- COMPLETE USER & ROLE AUTHENTICATION SUITE ---
+  public getUsers(): StoredUser[] {
+    return this.getItem<StoredUser[]>(STORAGE_KEYS.USERS, initialUsers);
+  }
+
+  public getCurrentUser(): User | null {
+    // Priority: new auth session
+    const session = this.getItem<User | null>(STORAGE_KEYS.AUTH_SESSION, null);
+    if (session) return session;
+
+    // Fallback: check legacy admin auth session and migrate
+    const legacyAdmin = this.getItem<AdminUser | null>(STORAGE_KEYS.ADMIN_AUTH, null);
+    if (legacyAdmin) {
+      const fullUser: User = {
+        id: legacyAdmin.id,
+        email: legacyAdmin.email,
+        name: legacyAdmin.name,
+        role: 'admin',
+        created_at: new Date().toISOString(),
+        last_login: legacyAdmin.last_login,
+      };
+      this.setCurrentUser(fullUser);
+      return fullUser;
+    }
+    return null;
+  }
+
+  public setCurrentUser(user: User | null): void {
+    if (!this.isBrowser) return;
+    if (user) {
+      this.setItem(STORAGE_KEYS.AUTH_SESSION, user);
+      if (user.role === 'admin') {
+        this.setItem(STORAGE_KEYS.ADMIN_AUTH, user);
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+      }
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.AUTH_SESSION);
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+    }
+  }
+
+  public registerUser(params: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    default_address?: string;
+    role?: UserRole;
+  }): { success: boolean; user?: User; error?: string } {
+    const name = params.name?.trim();
+    const email = params.email?.trim().toLowerCase();
+    const password = params.password?.trim();
+
+    if (!name || name.length < 2) {
+      return { success: false, error: 'Please enter a valid full name.' };
+    }
+    if (!email || !email.includes('@')) {
+      return { success: false, error: 'Please enter a valid email address.' };
+    }
+    if (!password || password.length < 6) {
+      return { success: false, error: 'Password must be at least 6 characters.' };
+    }
+
+    const users = this.getUsers();
+    if (users.some((u) => u.email.toLowerCase() === email)) {
+      return {
+        success: false,
+        error: 'An account with this email address already exists. Please sign in.',
+      };
+    }
+
+    // Role assignment: Default is 'customer'.
+    // If the registered email is designated admin email (e.g. asmuhammad42@gmail.com), assign admin.
+    let role: UserRole = params.role || 'customer';
+    if (email === 'asmuhammad42@gmail.com' || email === 'admin@restaurant.com') {
+      role = 'admin';
+    }
+
+    const now = new Date().toISOString();
+    const newUser: StoredUser = {
+      id: `user-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      email,
+      name,
+      role,
+      phone: params.phone?.trim() || undefined,
+      default_address: params.default_address?.trim() || undefined,
+      password_hash: password,
+      created_at: now,
+      last_login: now,
+    };
+
+    users.push(newUser);
+    this.setItem(STORAGE_KEYS.USERS, users);
+
+    const safeUser: User = {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      role: newUser.role,
+      phone: newUser.phone,
+      default_address: newUser.default_address,
+      created_at: newUser.created_at,
+      last_login: newUser.last_login,
+    };
+
+    this.setCurrentUser(safeUser);
+    return { success: true, user: safeUser };
+  }
+
+  public loginUser(
+    email: string,
+    password: string
+  ): { success: boolean; user?: User; error?: string } {
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
+      return { success: false, error: 'Please provide both email and password.' };
+    }
+
+    const users = this.getUsers();
+    const matched = users.find(
+      (u) => u.email.toLowerCase() === trimmedEmail && u.password_hash === trimmedPassword
+    );
+
+    if (!matched) {
+      return {
+        success: false,
+        error: 'Invalid credentials. Please verify your email and password.',
+      };
+    }
+
+    // Update last_login
+    matched.last_login = new Date().toISOString();
+    this.setItem(STORAGE_KEYS.USERS, users);
+
+    const safeUser: User = {
+      id: matched.id,
+      email: matched.email,
+      name: matched.name,
+      role: matched.role,
+      phone: matched.phone,
+      default_address: matched.default_address,
+      created_at: matched.created_at,
+      last_login: matched.last_login,
+    };
+
+    this.setCurrentUser(safeUser);
+    return { success: true, user: safeUser };
+  }
+
+  public logoutUser(): void {
+    this.setCurrentUser(null);
+  }
+
+  public updateUserProfile(
+    userId: string,
+    updates: Partial<User>
+  ): { success: boolean; user?: User; error?: string } {
+    const users = this.getUsers();
+    const index = users.findIndex((u) => u.id === userId);
+    if (index === -1) {
+      return { success: false, error: 'User account not found.' };
+    }
+
+    const current = users[index];
+    const updatedUser: StoredUser = {
+      ...current,
+      name: updates.name ? updates.name.trim() : current.name,
+      phone: updates.phone !== undefined ? updates.phone.trim() : current.phone,
+      default_address:
+        updates.default_address !== undefined ? updates.default_address.trim() : current.default_address,
+    };
+
+    users[index] = updatedUser;
+    this.setItem(STORAGE_KEYS.USERS, users);
+
+    const safeUser: User = {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      name: updatedUser.name,
+      role: updatedUser.role,
+      phone: updatedUser.phone,
+      default_address: updatedUser.default_address,
+      created_at: updatedUser.created_at,
+      last_login: updatedUser.last_login,
+    };
+
+    const currentSession = this.getCurrentUser();
+    if (currentSession && currentSession.id === userId) {
+      this.setCurrentUser(safeUser);
+    }
+
+    return { success: true, user: safeUser };
+  }
+
+  public getOrdersForUser(user: User): Order[] {
+    const orders = this.getOrders();
+    const userPhone = user.phone ? user.phone.replace(/\D/g, '') : '';
+    const userEmail = user.email.toLowerCase();
+
+    return orders.filter((o) => {
+      if (o.user_id && o.user_id === user.id) return true;
+      if (o.customer_email && o.customer_email.toLowerCase() === userEmail) return true;
+      if (userPhone && o.customer_phone) {
+        const orderPhone = o.customer_phone.replace(/\D/g, '');
+        if (orderPhone && orderPhone === userPhone) return true;
+      }
+      return false;
+    });
+  }
+
+  // --- BACKWARDS COMPATIBILITY WRAPPERS ---
+  public getAdminSession(): AdminUser | null {
+    const user = this.getCurrentUser();
+    if (user && user.role === 'admin') {
+      return user;
+    }
+    return null;
+  }
+
+  public setAdminSession(user: AdminUser | null): void {
+    this.setCurrentUser(user);
+  }
+
+  public clearAdminSession(): void {
+    this.logoutUser();
+  }
+
+  public authenticateAdmin(
+    email: string,
+    password: string
+  ): { success: boolean; user?: AdminUser; error?: string } {
+    const result = this.loginUser(email, password);
+    if (!result.success || !result.user) {
+      return { success: false, error: result.error || 'Authentication failed.' };
+    }
+
+    if (result.user.role !== 'admin') {
+      return {
+        success: false,
+        error: `Access denied. Signed in as ${result.user.name} (${result.user.role}). Administrator role required.`,
+      };
+    }
+
+    return { success: true, user: result.user };
   }
 }
 

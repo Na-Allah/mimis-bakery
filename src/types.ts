@@ -70,9 +70,27 @@ export interface OrderItem {
   created_at: string;
 }
 
+export type UserRole = 'admin' | 'customer';
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  phone?: string;
+  default_address?: string;
+  created_at: string;
+  last_login?: string;
+}
+
+export interface StoredUser extends User {
+  password_hash: string;
+}
+
 export interface Order {
   id: string;
   order_number: string; // Format: ORD-YYMMDD-XXXXX
+  user_id?: string; // Associated user account if logged in
   customer_name: string;
   customer_phone: string;
   customer_email?: string;
@@ -121,6 +139,8 @@ export interface SiteConfiguration {
   default_delivery_fee: number;
 }
 
+export type AdminUser = User;
+
 export type ActiveView =
   | { type: 'home' }
   | { type: 'menu'; sectionSlug?: string; categorySlug?: string }
@@ -129,4 +149,5 @@ export type ActiveView =
   | { type: 'checkout' }
   | { type: 'order-success'; orderNumber: string }
   | { type: 'track-order'; orderNumber?: string }
+  | { type: 'my-orders' }
   | { type: 'admin'; tab?: 'orders' | 'catalog' | 'notifications' | 'settings' };
