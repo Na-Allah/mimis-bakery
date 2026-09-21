@@ -110,11 +110,7 @@ export const AuthScreen: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 w-full items-center">
           {/* Left Column: Brand Story & Features */}
           <div className="lg:col-span-6 space-y-5 text-left">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#D4AF37]/50 text-[#1A1A1A] text-xs font-semibold shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span>Authentic Culinary Excellence</span>
-            </div>
-
+            
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#111827] leading-[1.15] tracking-tight">
               Please sign in to access the restaurant
             </h1>
@@ -124,48 +120,8 @@ export const AuthScreen: React.FC = () => {
               To explore our chef-crafted menus, place orders, track kitchen preparations, and access administrative tools, please authenticate or register your account.
             </p>
 
-            {/* Feature Highlights */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <div className="p-3.5 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs flex items-start gap-3">
-                <div className="w-8 h-8 rounded-xl bg-[#FFF8ED] text-[#C8102E] flex items-center justify-center shrink-0 mt-0.5 border border-[#E5E7EB]">
-                  <ShoppingBag className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-[#111827]">Curated Menu</h4>
-                  <p className="text-[11px] text-[#475569] mt-0.5">Browse authentic dishes & order seamlessly</p>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs flex items-start gap-3">
-                <div className="w-8 h-8 rounded-xl bg-[#FFF8ED] text-[#D4AF37] flex items-center justify-center shrink-0 mt-0.5 border border-[#E5E7EB]">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-[#111827]">Live Kitchen Tracking</h4>
-                  <p className="text-[11px] text-[#475569] mt-0.5">Real-time prep & dispatch notifications</p>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs flex items-start gap-3">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 text-[#16A34A] flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100">
-                  <MessageCircle className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-[#111827]">WhatsApp Dispatch</h4>
-                  <p className="text-[11px] text-[#475569] mt-0.5">Direct kitchen coordination via WhatsApp</p>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs flex items-start gap-3">
-                <div className="w-8 h-8 rounded-xl bg-[#FFF8ED] text-[#1A1A1A] flex items-center justify-center shrink-0 mt-0.5 border border-[#E5E7EB]">
-                  <Award className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-[#111827]">Role-Based Access</h4>
-                  <p className="text-[11px] text-[#475569] mt-0.5">Customer & Admin privileges supported</p>
-                </div>
-              </div>
-            </div>
+           
+            
           </div>
 
           {/* Right Column: Sign In / Create Account Card */}
@@ -284,54 +240,7 @@ export const AuthScreen: React.FC = () => {
                   </button>
 
                   {/* 1-Click Fast Role Sign-Ins */}
-                  <div className="pt-3 border-t border-[#E5E7EB]">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#475569] flex items-center gap-1">
-                        <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" /> Quick Sign-In (1-Click)
-                      </span>
-                      <span className="text-[10px] text-[#9CA3AF]">Auto-fills & logs in</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {/* Admin Quick Login */}
-                      <button
-                        type="button"
-                        id="gate-demo-admin-btn"
-                        onClick={() => quickFillAndLogin('asmuhammad42@gmail.com', 'admin123')}
-                        className="p-2.5 rounded-xl bg-[#FFF8ED] hover:bg-[#FFF8ED]/80 border border-[#D4AF37]/60 text-left transition group cursor-pointer"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#111827]">Muhammad</span>
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#C8102E]/10 text-[#C8102E] font-bold uppercase">
-                            Admin
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-[#475569] truncate">asmuhammad42@gmail.com</div>
-                        <div className="text-[10px] text-[#C8102E] mt-1 flex items-center gap-1 font-semibold">
-                          <ShieldCheck className="w-3 h-3" /> Unlocks Admin Portal
-                        </div>
-                      </button>
-
-                      {/* Customer Quick Login */}
-                      <button
-                        type="button"
-                        id="gate-demo-customer-btn"
-                        onClick={() => quickFillAndLogin('adeola@example.com', 'customer123')}
-                        className="p-2.5 rounded-xl bg-white hover:bg-[#FFF8ED] border border-[#E5E7EB] text-left transition group cursor-pointer"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#111827]">Adeola</span>
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#E5E7EB] text-[#475569] font-medium uppercase">
-                            Customer
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-[#475569] truncate">adeola@example.com</div>
-                        <div className="text-[10px] text-[#9CA3AF] mt-1 flex items-center gap-1">
-                          <UserIcon className="w-3 h-3" /> Standard Diner Access
-                        </div>
-                      </button>
-                    </div>
-                  </div>
+                  
                 </form>
               ) : (
                 /* --- CREATE ACCOUNT FORM --- */
