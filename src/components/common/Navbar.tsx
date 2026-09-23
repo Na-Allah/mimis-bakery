@@ -70,7 +70,7 @@ export const Navbar: React.FC = () => {
             <span className="flex items-center gap-1.5 text-[#111827]">
               <MapPin className="w-3.5 h-3.5 text-[#C8102E]" />
               {siteConfig.address}
-            </span>
+            </span>y
             <span className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-[#D4AF37]" />
               {siteConfig.opening_hours}

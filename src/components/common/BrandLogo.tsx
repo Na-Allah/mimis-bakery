@@ -45,7 +45,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             </span>
           </div>
           {(showTagline || size === 'lg' || size === 'xl') && (
-            <span className={`text-[#D4AF37] font-medium italic mt-0.5 tracking-wide ${currentSize.sub}`}>
+            <span className={`text-[#C8102E] font-medium italic mt-0.5 tracking-wide ${currentSize.sub}`}>
               Not just by Name.
             </span>
           )}

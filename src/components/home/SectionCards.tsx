@@ -102,7 +102,7 @@ export const SectionCards: React.FC = () => {
                   {/* CTA link */}
                   <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-between text-xs font-semibold text-[#C8102E] group-hover:text-[#A70D26]">
                     <span>Browse {section.name} Menu</span>
-                    <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="w-10  h-7 bg-[#C8102E]  rounded-md text-white  transform group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </div>
