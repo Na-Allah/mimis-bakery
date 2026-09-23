@@ -11,10 +11,10 @@ export const HeroBanner: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Text Column */}
           <div className="lg:col-span-7 space-y-5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#D4AF37]/50 text-[#1A1A1A] text-xs font-semibold shadow-xs">
+            {/* <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#D4AF37]/50 text-[#1A1A1A] text-xs font-semibold shadow-xs">
               <Flame className="w-3.5 h-3.5 text-[#C8102E]" />
               <span>Flame-Grilled Meats & Fresh Heritage Bakery</span>
-            </div>
+            </div> */}
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#111827] leading-[1.12]">
               Savor Authentic Fire, Crust & Flavor.
@@ -49,7 +49,7 @@ export const HeroBanner: React.FC = () => {
             </div>
 
             {/* Feature badging */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-5 border-t border-[#E5E7EB] text-xs text-[#475569]">
+            {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-5 border-t border-[#E5E7EB] text-xs text-[#475569]">
               <div className="flex items-center gap-2.5">
                 <Truck className="w-4 h-4 text-[#C8102E] shrink-0" />
                 <span>
@@ -64,7 +64,7 @@ export const HeroBanner: React.FC = () => {
                 <ShieldCheck className="w-4 h-4 text-[#16A34A] shrink-0" />
                 <span>WhatsApp Order Receipt</span>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Right Image Composition */}

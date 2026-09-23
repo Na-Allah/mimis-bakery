@@ -101,6 +101,7 @@ export const Navbar: React.FC = () => {
           className="cursor-pointer group py-2"
         >
           <BrandLogo size="md" showTagline={true} />
+          {/* <img src="images/logo.jpeg" alt="Logo" style={{ height: 36 }} /> */}
         </div>
 
         {/* Desktop Navigation */}
@@ -192,11 +193,11 @@ export const Navbar: React.FC = () => {
         {/* Right side controls: Cart + Auth (with Role-Gated Admin Button) + Mobile toggle */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* CRITICAL REQUIREMENT: Admin button ONLY visible to users with role === 'admin' */}
-          {isAdmin && (
+          {/* {isAdmin && (
             <button
               id="nav-btn-admin"
               onClick={() => navigateTo({ type: 'admin' })}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+              className={`flex items-center  gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                 activeView.type === 'admin'
                   ? 'bg-[#1A1A1A] text-[#D4AF37] border-[#1A1A1A] shadow-sm'
                   : 'border-[#D4AF37]/60 bg-[#FFF8ED] text-[#1A1A1A] hover:bg-[#D4AF37]/15'
@@ -206,118 +207,10 @@ export const Navbar: React.FC = () => {
               <ShieldAlert className="w-3.5 h-3.5 text-[#D4AF37]" />
               <span>Admin</span>
             </button>
-          )}
+          )} */}
 
           {/* User Account / Sign In Control */}
-          {isAuthenticated && currentUser ? (
-            <div className="relative" ref={dropdownRef}>
-              <button
-                id="nav-btn-user-profile"
-                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 rounded-xl bg-[#FFF8ED] hover:bg-[#FFF8ED]/80 border border-[#E5E7EB] transition text-left cursor-pointer min-h-[44px]"
-                aria-expanded={userDropdownOpen}
-                aria-haspopup="true"
-              >
-                <div
-                  className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-extrabold ${
-                    isAdmin
-                      ? 'bg-[#C8102E] text-white'
-                      : 'bg-[#1A1A1A] text-white'
-                  }`}
-                >
-                  {currentUser.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="hidden sm:block text-left">
-                  <div className="text-xs font-semibold text-[#111827] leading-tight flex items-center gap-1">
-                    <span className="truncate max-w-[90px]">{currentUser.name.split(' ')[0]}</span>
-                    {isAdmin ? (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#C8102E]/10 text-[#C8102E] font-bold uppercase">
-                        Admin
-                      </span>
-                    ) : (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#E5E7EB] text-[#475569] font-medium uppercase">
-                        User
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <ChevronDown className="w-3.5 h-3.5 text-[#9CA3AF]" />
-              </button>
-
-              {/* User Dropdown Menu */}
-              {userDropdownOpen && (
-                <div
-                  id="nav-user-dropdown"
-                  className="absolute right-0 mt-2 w-56 bg-white border border-[#E5E7EB] rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
-                >
-                  <div className="px-3.5 py-2.5 border-b border-[#E5E7EB]">
-                    <p className="text-xs font-semibold text-[#111827] truncate">{currentUser.name}</p>
-                    <p className="text-[11px] text-[#475569] truncate">{currentUser.email}</p>
-                    <div className="mt-1.5 flex items-center gap-1.5">
-                      {isAdmin ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#C8102E]/10 text-[#C8102E] border border-[#C8102E]/20">
-                          <ShieldCheck className="w-3 h-3 text-[#C8102E]" /> Administrator
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#FFF8ED] text-[#475569] border border-[#E5E7EB]">
-                          <UserIcon className="w-3 h-3 text-[#475569]" /> Customer Account
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="py-1">
-                    <button
-                      id="dropdown-link-my-orders"
-                      onClick={() => handleNav(() => navigateTo({ type: 'my-orders' }))}
-                      className="w-full text-left px-3.5 py-2 text-xs text-[#475569] hover:text-[#C8102E] hover:bg-[#FFF8ED] flex items-center justify-between transition cursor-pointer"
-                    >
-                      <span className="flex items-center gap-2 font-medium">
-                        <PackageCheck className="w-3.5 h-3.5 text-[#C8102E]" />
-                        My Orders
-                      </span>
-                      {userOrders.length > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#E5E7EB] text-[#111827] font-bold">
-                          {userOrders.length}
-                        </span>
-                      )}
-                    </button>
-
-                    {isAdmin && (
-                      <button
-                        id="dropdown-link-admin"
-                        onClick={() => handleNav(() => navigateTo({ type: 'admin' }))}
-                        className="w-full text-left px-3.5 py-2 text-xs text-[#1A1A1A] hover:text-[#C8102E] hover:bg-[#FFF8ED] flex items-center gap-2 font-medium transition cursor-pointer"
-                      >
-                        <ShieldAlert className="w-3.5 h-3.5 text-[#D4AF37]" />
-                        Admin Dashboard
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="pt-1 border-t border-[#E5E7EB]">
-                    <button
-                      id="dropdown-link-logout"
-                      onClick={() => handleNav(logout)}
-                      className="w-full text-left px-3.5 py-2 text-xs text-[#EF4444] hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer font-medium"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      Sign Out
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <button
-              id="nav-btn-signin"
-              onClick={() => openAuthModal('login')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FFF8ED] hover:bg-[#FFF8ED]/80 border border-[#E5E7EB] text-[#111827] text-xs font-semibold transition cursor-pointer min-h-[44px]"
-            >
-              <LogIn className="w-3.5 h-3.5 text-[#C8102E]" />
-              <span>Sign In</span>
-            </button>
-          )}
+         
 
           {/* Cart button in Mimis Red */}
           <button

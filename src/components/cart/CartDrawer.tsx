@@ -34,10 +34,10 @@ export const CartDrawer: React.FC = () => {
       className="fixed inset-0 z-50 overflow-hidden bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={() => setIsCartOpen(false)}
     >
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+      <div className="fixed inset-0 sm:inset-y-0 sm:left-auto sm:right-0 max-w-full flex justify-center sm:justify-end px-4 py-4 sm:p-0 sm:pl-10">
         <div
           id="cart-drawer-panel"
-          className="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between"
+          className="w-full sm:w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between rounded-2xl sm:rounded-none overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
