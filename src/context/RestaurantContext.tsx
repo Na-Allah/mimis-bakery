@@ -18,6 +18,13 @@ import {
 import { storageService } from '../services/storageService';
 import { notificationService } from '../services/notificationService';
 
+import {
+  loginUser,
+  registerUser,
+  getCurrentUser,
+  logoutUser,
+} from "../api/auth";
+
 interface ToastInfo {
   id: string;
   message: string;
@@ -80,15 +87,26 @@ interface RestaurantContextType {
   authModalTab: 'login' | 'register';
   openAuthModal: (tab?: 'login' | 'register') => void;
   closeAuthModal: () => void;
-  login: (email: string, password: string) => { success: boolean; user?: User; error?: string };
+  login: (
+  email: string,
+  password: string
+) => Promise<{
+  success: boolean;
+  user?: User;
+  error?: string;
+}>;
+
   register: (params: {
-    name: string;
-    email: string;
-    password: string;
-    phone?: string;
-    default_address?: string;
-    role?: UserRole;
-  }) => { success: boolean; user?: User; error?: string };
+  full_name: string;
+  email: string;
+  phone_number: string;
+  delivery_address: string;
+  password: string;
+}) => Promise<{
+  success: boolean;
+  user?: User;
+  error?: string;
+}>;
   logout: () => void;
   updateProfile: (updates: Partial<User>) => { success: boolean; user?: User; error?: string };
   userOrders: Order[];
@@ -141,7 +159,37 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, []);
 
   // User Authentication & Roles State
-  const [currentUser, setCurrentUser] = useState<User | null>(() => storageService.getCurrentUser());
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+const [authLoading, setAuthLoading] = useState(true);
+useEffect(() => {
+  let mounted = true;
+
+  const loadAuthenticatedUser = async () => {
+    try {
+      const data = await getCurrentUser();
+
+      if (mounted) {
+        setCurrentUser(data);
+      }
+    } catch (error) {
+      console.error("Failed to restore authentication:", error);
+
+      if (mounted) {
+        setCurrentUser(null);
+      }
+    } finally {
+      if (mounted) {
+        setAuthLoading(false);
+      }
+    }
+  };
+
+  loadAuthenticatedUser();
+
+  return () => {
+    mounted = false;
+  };
+}, []);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
 
@@ -157,55 +205,73 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setIsAuthModalOpen(false);
   }, []);
 
-  const login = useCallback(
-    (email: string, password: string) => {
-      const result = storageService.loginUser(email, password);
-      if (result.success && result.user) {
-        setCurrentUser(result.user);
-        setIsAuthModalOpen(false);
-        showToast(
-          `Welcome back, ${result.user.name}! ${result.user.role === 'admin' ? '(Administrator)' : ''}`,
-          'success'
-        );
-        return { success: true, user: result.user };
-      } else {
-        return { success: false, error: result.error || 'Authentication failed.' };
-      }
-    },
-    [showToast]
-  );
+  const login = async (email: string, password: string) => {
+  try {
+    const data = await loginUser(email, password);
 
-  const register = useCallback(
-    (params: {
-      name: string;
-      email: string;
-      password: string;
-      phone?: string;
-      default_address?: string;
-      role?: UserRole;
-    }) => {
-      const result = storageService.registerUser(params);
-      if (result.success && result.user) {
-        setCurrentUser(result.user);
-        setIsAuthModalOpen(false);
-        showToast(`Account created! Welcome to the restaurant, ${result.user.name}.`, 'success');
-        return { success: true, user: result.user };
-      } else {
-        return { success: false, error: result.error || 'Registration failed.' };
-      }
-    },
-    [showToast]
-  );
+    setCurrentUser(data.user);
 
-  const logout = useCallback(() => {
-    storageService.logoutUser();
+    return {
+      success: true,
+      user: data.user,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Invalid email or password.",
+    };
+  }
+};
+
+
+
+const register = async (payload: {
+  full_name: string;
+  email: string;
+  phone_number: string;
+  delivery_address: string;
+  password: string;
+}) => {
+  try {
+    const data = await registerUser(payload);
+
+    setCurrentUser(data.user);
+
+    return {
+      success: true,
+      user: data.user,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to create account.",
+    };
+  }
+};
+
+  const logout = useCallback(async () => {
+  try {
+    await logoutUser();
+  } catch (error) {
+    console.error("Logout error:", error);
+  } finally {
     setCurrentUser(null);
-    showToast('Signed out successfully.', 'info');
-    // If currently on admin or restricted view, redirect back to home
+
+    showToast("Signed out successfully.", "info");
+
     setActiveView((curr) =>
-      curr.type === 'admin' || curr.type === 'my-orders' ? { type: 'home' } : curr
+      curr.type === "admin" || curr.type === "my-orders"
+        ? { type: "home" }
+        : curr
     );
-  }, [showToast]);
+  }
+}, [showToast]);
 
   const updateProfile = useCallback(
     (updates: Partial<User>) => {

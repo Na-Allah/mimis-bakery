@@ -261,11 +261,11 @@ export const Navbar: React.FC = () => {
                       : 'bg-[#1A1A1A] text-white'
                   }`}
                 >
-                  {currentUser.name.charAt(0).toUpperCase()}
+                  {currentUser.full_name.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <div className="text-xs font-bold text-[#111827] flex items-center gap-1.5">
-                    <span>{currentUser.name}</span>
+                    <span>{currentUser.full_name}</span>
                     {isAdmin ? (
                       <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#C8102E]/10 text-[#C8102E] font-bold uppercase">
                         Admin

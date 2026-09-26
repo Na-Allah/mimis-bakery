@@ -41,42 +41,45 @@ export const AuthScreen: React.FC = () => {
   const [regError, setRegError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError('');
-    setIsLoggingIn(true);
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoginError('');
+  setIsLoggingIn(true);
 
-    const result = login(loginEmail, loginPassword);
-    setIsLoggingIn(false);
+  const result = await login(loginEmail, loginPassword);
 
-    if (!result.success) {
-      setLoginError(result.error || 'Invalid email or password.');
-    }
-  };
+  setIsLoggingIn(false);
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setRegError('');
+  if (!result.success) {
+    setLoginError(result.error || 'Invalid email or password.');
+  }
+};
 
-    if (regPassword.length < 6) {
-      setRegError('Password must be at least 6 characters long.');
-      return;
-    }
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setRegError('');
 
-    setIsRegistering(true);
-    const result = register({
-      name: regName,
-      email: regEmail,
-      phone: regPhone,
-      default_address: regAddress,
-      password: regPassword,
-    });
-    setIsRegistering(false);
+  if (regPassword.length < 6) {
+    setRegError('Password must be at least 6 characters long.');
+    return;
+  }
 
-    if (!result.success) {
-      setRegError(result.error || 'Failed to create account.');
-    }
-  };
+  setIsRegistering(true);
+
+  const result = await register({
+  full_name: regName,
+  email: regEmail,
+  phone_number: regPhone,
+  delivery_address: regAddress,
+  password: regPassword,
+});
+
+  setIsRegistering(false);
+
+  if (!result.success) {
+    setRegError(result.error || 'Failed to create account.');
+  }
+};
 
   const quickFillAndLogin = (email: string, pass: string) => {
     setLoginEmail(email);

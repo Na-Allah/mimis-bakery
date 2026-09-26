@@ -70,15 +70,15 @@ export interface OrderItem {
   created_at: string;
 }
 
-export type UserRole = 'admin' | 'customer';
+export type UserRole = 'CUSTOMER' | 'ADMIN';
 
 export interface User {
   id: string;
   email: string;
-  name: string;
+  full_name: string;
   role: UserRole;
-  phone?: string;
-  default_address?: string;
+  phone_number: string;
+  delivery_address: string;
   created_at: string;
   last_login?: string;
 }

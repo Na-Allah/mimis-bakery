@@ -13,6 +13,7 @@ phone_number_validator = RegexValidator(
     message="Enter a phone number in E.164 format, for example +2348012345678.",
 )
 
+
 class UserManager(BaseUserManager):
     """Creates users whose email and phone number are both identities."""
 
@@ -59,12 +60,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.CUSTOMER)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)  
 
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["phone_number"]
+    REQUIRED_FIELDS = ["phone_number","full_name"]
 
     class Meta:
         constraints = [

@@ -15,7 +15,11 @@ SECRET_KEY = 'django-insecure-kzvohok$gb=bcwcdi22cz^!qbo0xs0*y@q_^lq)e9b*!(y$cf!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "10.133.29.175"
+]
 
 
 # Application definition
@@ -27,13 +31,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'accounts',
     'corsheaders',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # as high as possible, above CommonMiddleware
-    'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -118,10 +122,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "accounts.User"
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # or wherever your React dev server runs
+    "http://localhost:3000", 
+    "http://10.133.29.175:3000" # or wherever your React dev server runs
 ]
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
+    "http://10.133.29.175:3000"
 ]
