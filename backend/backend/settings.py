@@ -155,8 +155,8 @@ REST_FRAMEWORK = {
     },
 }
 
-CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+CORS_ALLOWED_ORIGINS = https://mimis-bakery.onrender.com
+ALLOWED_HOSTS = https://mimis-bakery.onrender.com
 # for origin in CORS_ALLOWED_ORIGINS:
 #     origin_host = urlsplit(origin).hostname
 #     if origin_host and origin_host not in ALLOWED_HOSTS:
@@ -175,7 +175,7 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+CSRF_TRUSTED_ORIGINS = https://mimis-bakery.onrender.com
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
