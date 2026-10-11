@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ["SECRET_KEY"]
+SECRET_KEY = ""
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "False") == "True"   # dev-friendly default
@@ -155,7 +155,7 @@ REST_FRAMEWORK = {
     },
 }
 
-CORS_ALLOWED_ORIGINS =" https://mimis-bakery.onrender.com"
+CORS_ALLOWED_ORIGINS = ["https://mimis-bakery.onrender.com"]
 ALLOWED_HOSTS = ["https://mimis-bakery.onrender.com"]
 # for origin in CORS_ALLOWED_ORIGINS:
 #     origin_host = urlsplit(origin).hostname
