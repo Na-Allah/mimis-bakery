@@ -6,4 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
-db.sqlite3
+db.sqlite3backend/media/
+
+# internal_database_url = "postgresql://mimis_resturant_user:e4AhqDKbQb1AcZ3ySBRZKPdHn9tlsT1W@dpg-db5k107lk1mc73a9gh50-a/mimis_resturant"

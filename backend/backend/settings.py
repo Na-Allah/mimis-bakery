@@ -68,20 +68,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 ASGI_APPLICATION = 'backend.asgi.application'
 
-REDIS_URL = os.environ.get("REDIS_URL")
-if REDIS_URL:
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {"hosts": [REDIS_URL]},
-        },
-    }
-elif DEBUG:
-    CHANNEL_LAYERS = {
-        "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"},
-    }
-else:
-    raise RuntimeError("REDIS_URL is required when DEBUG is disabled.")
+# REDIS_URL = os.environ.get("REDIS_URL")
+# if REDIS_URL:
+#     CHANNEL_LAYERS = {
+#         "default": {
+#             "BACKEND": "channels_redis.core.RedisChannelLayer",
+#             "CONFIG": {"hosts": [REDIS_URL]},
+#         },
+#     }
+# elif DEBUG:
+#     CHANNEL_LAYERS = {
+#         "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"},
+#     }
+# else:
+#     raise RuntimeError("REDIS_URL is required when DEBUG is disabled.")
 
 
 # Database
