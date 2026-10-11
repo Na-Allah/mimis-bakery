@@ -156,7 +156,7 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = ["https://mimis-bakery.onrender.com"]
-ALLOWED_HOSTS = ["https://mimis-bakery.onrender.com"]
+ALLOWED_HOSTS = ["mimis-bakery.onrender.com"]
 # for origin in CORS_ALLOWED_ORIGINS:
 #     origin_host = urlsplit(origin).hostname
 #     if origin_host and origin_host not in ALLOWED_HOSTS:
