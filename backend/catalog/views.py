@@ -1,4 +1,4 @@
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,7 +12,7 @@ from .serializers import CategorySerializer, ProductSerializer, SectionSerialize
 
 
 class MenuView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request):
         if request.user.is_admin:
@@ -61,7 +61,7 @@ class ProductManageView(generics.GenericAPIView):
 
 
 class SectionManageView(generics.GenericAPIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     serializer_class = SectionSerializer
 
@@ -88,7 +88,7 @@ class SectionManageView(generics.GenericAPIView):
 
 
 class CategoryManageView(generics.GenericAPIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     serializer_class = CategorySerializer
 

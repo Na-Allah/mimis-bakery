@@ -18,6 +18,7 @@ def csrf_view(request):
     """
     Creates/returns the CSRF cookie used by the React frontend.
     """
+    permission_classes = [AllowAny]
     return Response({"csrfToken": get_token(request)})
 
 

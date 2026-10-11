@@ -75,6 +75,13 @@ function isRealtimeEvent(value: unknown): value is RealtimeEvent {
 }
 
 export function createRealtimeWebSocketUrl(): string {
+  const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+  const base = apiUrl.replace(/\/api$/, '');
+
+  if (/^https?:\/\//.test(base)) {
+    return `${base.replace(/^http/, 'ws')}/ws/events/`;
+  }
+
   const scheme = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   return `${scheme}//${window.location.host}/ws/events/`;
 }

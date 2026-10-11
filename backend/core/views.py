@@ -10,6 +10,7 @@ from .serializers import SiteConfigurationSerializer
 
 class SiteConfigView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    permission_classes = [AllowAny]
 
     def get_permissions(self):
         return [AllowAny()] if self.request.method == "GET" else [IsAuthenticated()]
