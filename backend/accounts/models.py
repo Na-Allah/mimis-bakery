@@ -49,6 +49,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Role(models.TextChoices):
        
         ADMIN = "ADMIN", "Admin"
+        COURIER = "COURIER", "Courier"
         CUSTOMER = "CUSTOMER", "Customer"
 
 
@@ -82,8 +83,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.role == self.Role.CUSTOMER
 
     @property
-    def is_admin (self):
-        return self.role == self.Role.ADMIN
+    def is_admin(self):
+        return bool(self.is_staff or self.is_superuser or self.role == self.Role.ADMIN)
+
+    @property
+    def is_courier(self):
+        return self.role == self.Role.COURIER
 
     
     def save(self, *args, **kwargs):

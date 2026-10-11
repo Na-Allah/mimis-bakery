@@ -1,6 +1,7 @@
 import React from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
 import { X, Trash2, Plus, Minus, ArrowRight, ShoppingBag, Utensils } from 'lucide-react';
+import { getMediaUrl } from '../../utils/media';
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -14,9 +15,10 @@ export const CartDrawer: React.FC = () => {
     cartSubtotal,
     formatMoney,
     navigateTo,
+    isAuthenticated,
   } = useRestaurant();
 
-  if (!isCartOpen) return null;
+  if (!isAuthenticated || !isCartOpen) return null;
 
   const handleCheckoutClick = () => {
     setIsCartOpen(false);
@@ -117,7 +119,7 @@ export const CartDrawer: React.FC = () => {
                   >
                     {/* Thumbnail */}
                     <img
-                      src={product.image}
+                      src={getMediaUrl(product.image)}
                       alt={product.name}
                       referrerPolicy="no-referrer"
                       className="w-16 h-16 rounded-xl object-cover bg-stone-100 shrink-0 border border-[#E5E7EB]"

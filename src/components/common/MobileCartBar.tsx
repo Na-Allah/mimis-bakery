@@ -3,9 +3,10 @@ import { useRestaurant } from '../../context/RestaurantContext';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
 
 export const MobileCartBar: React.FC = () => {
-  const { cartCount, cartSubtotal, setIsCartOpen, formatMoney, activeView, navigateTo } =
+  const { cartCount, cartSubtotal, setIsCartOpen, formatMoney, activeView, navigateTo, isAuthenticated } =
     useRestaurant();
 
+  if (!isAuthenticated) return null;
   // Don't show on checkout or order confirmation views
   if (cartCount === 0) return null;
   if (activeView.type === 'checkout' || activeView.type === 'order-success') return null;

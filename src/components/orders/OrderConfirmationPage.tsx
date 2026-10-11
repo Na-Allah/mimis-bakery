@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
 import {
   CheckCircle2,
@@ -11,18 +11,99 @@ import {
   buildOrderWhatsAppMessage,
   buildWhatsAppChatUrl,
 } from '../../services/notificationService';
+import { CourierContactCard } from './CourierContactCard';
 
 interface OrderConfirmationPageProps {
   orderNumber: string;
+  trackingToken?: string;
 }
 
 export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
   orderNumber,
+  trackingToken,
 }) => {
-  const { orders, siteConfig, formatMoney, navigateTo, canUserTrackOrder, currentUser, openAuthModal } =
+  const { orders, lookupOrder, siteConfig, formatMoney, navigateTo, canUserTrackOrder, currentUser, openAuthModal, lastRealtimeEvent } =
     useRestaurant();
 
-  const order = orders.find((o) => o.order_number.trim().toLowerCase() === orderNumber.trim().toLowerCase());
+  const [loadedOrder, setLoadedOrder] = useState(
+    orders.find((o) => o.order_number.trim().toLowerCase() === orderNumber.trim().toLowerCase()) ?? null
+  );
+  const [isLoading, setIsLoading] = useState(
+    () =>
+      !orders.some((o) => o.order_number.trim().toLowerCase() === orderNumber.trim().toLowerCase()) &&
+      Boolean(trackingToken)
+  );
+
+  useEffect(() => {
+    if (loadedOrder || !trackingToken) {
+      setIsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setIsLoading(true);
+    lookupOrder(orderNumber, trackingToken)
+      .then((result) => {
+        if (!cancelled) setLoadedOrder(result);
+      })
+      .catch(() => {
+        if (!cancelled) setLoadedOrder(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadedOrder, lookupOrder, orderNumber, trackingToken]);
+
+  const orderFromContext = orders.find(
+    (candidate) => candidate.order_number.trim().toLowerCase() === orderNumber.trim().toLowerCase()
+  );
+
+  useEffect(() => {
+    if (orderFromContext) setLoadedOrder(orderFromContext);
+  }, [orderFromContext]);
+
+  useEffect(() => {
+    if (
+      !loadedOrder
+      || lastRealtimeEvent?.data.resource !== 'order'
+      || loadedOrder.id !== lastRealtimeEvent.id
+    ) return;
+
+    if (lastRealtimeEvent.type === 'ORDER_DELETED') {
+      setLoadedOrder(null);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadedOrder((current) => current ? { ...current, courier_contact: null } : current);
+    lookupOrder(loadedOrder.order_number)
+      .then((updatedOrder) => {
+        if (!cancelled) setLoadedOrder(updatedOrder);
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          console.error('Failed to refresh courier contact for order status update.', error);
+          setLoadedOrder((current) => current ? { ...current, courier_contact: null } : current);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lastRealtimeEvent, loadedOrder?.id, loadedOrder?.order_number, lookupOrder]);
+
+  const order = loadedOrder;
+
+  if (!order && isLoading) {
+    return (
+      <div className="min-h-screen bg-[#FFF8ED]/40 py-16 px-4">
+        <div className="max-w-md mx-auto text-center bg-white p-8 rounded-3xl border border-[#E5E7EB] shadow-xs">
+          <p className="text-sm text-[#475569]" role="status">Loading your order confirmation…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -74,7 +155,7 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
             <div className="font-mono font-bold text-[#111827]">{order.order_number}</div>
             {currentUser && (
               <div className="pt-2 border-t border-[#E5E7EB] text-[#475569] text-[11px]">
-                Active User: <strong className="text-[#111827]">{currentUser.name}</strong> ({currentUser.email})
+                Active User: <strong className="text-[#111827]">{currentUser.full_name}</strong> ({currentUser.email})
               </div>
             )}
           </div>
@@ -99,10 +180,10 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
             )}
             <button
               id="order-btn-track-other"
-              onClick={() => navigateTo({ type: 'track-order' })}
+              onClick={() => navigateTo({ type: 'my-orders' })}
               className="flex-1 py-3 px-4 rounded-xl bg-[#FFF8ED] hover:bg-[#FFF8ED]/80 text-[#111827] border border-[#E5E7EB] font-semibold text-xs transition cursor-pointer min-h-[44px]"
             >
-              Track Another Order
+              My Orders
             </button>
           </div>
         </div>
@@ -115,34 +196,30 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
   const whatsAppDirectUrl = buildWhatsAppChatUrl(siteConfig.whatsapp_number, whatsAppMessage);
 
   // Status progress steps
-  const steps: { key: string; label: string }[] = [
-    { key: 'PENDING', label: 'Order Placed' },
-    { key: 'CONFIRMED', label: 'Confirmed' },
-    { key: 'PREPARING', label: 'Preparing' },
-    { key: 'READY', label: order.order_type === 'DELIVERY' ? 'Out for Delivery' : 'Ready for Pickup' },
-    { key: 'COMPLETED', label: 'Completed' },
+  const steps: { key: string; label: string; description: string }[] = [
+    { key: 'PENDING', label: 'Order Placed', description: 'We received your order.' },
+    { key: 'CONFIRMED', label: 'Confirmed', description: 'The restaurant confirmed your order.' },
+    { key: 'PREPARING', label: 'Preparing', description: 'Your order is being prepared.' },
+    {
+      key: 'READY',
+      label: order.order_type === 'DELIVERY' ? 'Ready for Dispatch' : 'Ready for Pickup',
+      description: order.order_type === 'DELIVERY'
+        ? 'Your order is ready for the courier.'
+        : 'Your order is ready to collect.',
+    },
+    ...(order.order_type === 'DELIVERY'
+      ? [{ key: 'OUT_FOR_DELIVERY', label: 'Out for Delivery', description: 'Your courier is on the way.' }]
+      : []),
+    {
+      key: 'COMPLETED',
+      label: 'Completed',
+      description: order.order_type === 'DELIVERY' ? 'Your order has been delivered.' : 'Your order has been collected.',
+    },
   ];
 
-  const getStepIndex = (status: string) => {
-    switch (status) {
-      case 'PENDING':
-        return 0;
-      case 'CONFIRMED':
-        return 1;
-      case 'PREPARING':
-        return 2;
-      case 'READY':
-        return 3;
-      case 'COMPLETED':
-        return 4;
-      case 'CANCELLED':
-        return -1;
-      default:
-        return 0;
-    }
-  };
-
-  const currentStepIdx = getStepIndex(order.status);
+  const currentStepIdx = order.status === 'CANCELLED'
+    ? -1
+    : steps.findIndex((step) => step.key === order.status);
 
   return (
     <div id="order-success-page" className="min-h-screen bg-[#FFF8ED]/40 py-10 sm:py-16">
@@ -193,8 +270,8 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
         </div>
 
         {/* Live Status Tracker Stepper */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E5E7EB] shadow-xs space-y-6 mb-8">
-          <div className="flex items-center justify-between border-b border-[#E5E7EB] pb-4">
+        <div className="bg-white rounded-3xl p-4 sm:p-8 border border-[#E5E7EB] shadow-xs space-y-6 mb-8">
+        <div className="flex flex-col items-start gap-3 border-b border-[#E5E7EB] pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-lg font-bold text-[#111827]">
                 Order Status
@@ -220,29 +297,51 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
           </div>
 
           {order.status !== 'CANCELLED' ? (
-            <div className="grid grid-cols-5 gap-2 sm:gap-4 relative pt-2">
+            <div
+              className={`grid grid-cols-1 gap-0 pt-1 ${
+                order.order_type === 'DELIVERY' ? 'lg:grid-cols-6 lg:gap-4' : 'lg:grid-cols-5 lg:gap-4'
+              }`}
+            >
               {steps.map((step, idx) => {
                 const isPassed = idx <= currentStepIdx;
                 const isCurrent = idx === currentStepIdx;
 
                 return (
-                  <div key={step.key} className="text-center space-y-2">
-                    <div
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center mx-auto text-xs font-bold transition-all ${
+                  <div
+                    key={step.key}
+                    className={`relative flex min-h-[76px] items-start gap-4 border border-transparent px-3 py-2 text-left lg:min-h-0 lg:flex-col lg:items-center lg:gap-2 lg:px-1 lg:py-2 lg:text-center ${
+                      isCurrent ? 'rounded-2xl bg-[#FFF8ED]/70 lg:border-[#E5E7EB] lg:bg-white' : ''
+                    }`}
+                  >
+                    {idx < steps.length - 1 && (
+                      <span
+                        aria-hidden="true"
+                        className={`absolute bottom-[-1px] left-[27px] top-[42px] w-0.5 lg:hidden ${
+                          idx < currentStepIdx ? 'bg-[#C8102E]' : 'bg-[#E5E7EB]'
+                        }`}
+                      />
+                    )}
+                    <span
+                      className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all lg:h-10 lg:w-10 ${
                         isPassed
                           ? 'bg-[#C8102E] text-white font-extrabold shadow-sm'
-                          : 'bg-[#FFF8ED] text-[#9CA3AF] border border-[#E5E7EB]'
+                          : 'border border-[#E5E7EB] bg-[#FFF8ED] text-[#9CA3AF]'
                       } ${isCurrent ? 'ring-4 ring-[#C8102E]/20' : ''}`}
                     >
                       {idx + 1}
+                    </span>
+                    <div className="min-w-0 pb-2 sm:pb-0">
+                      <p className={`text-sm font-bold leading-snug lg:text-xs ${
+                        isPassed ? 'text-[#111827]' : 'text-[#9CA3AF]'
+                      }`}>
+                        {step.label}
+                      </p>
+                      <p className={`mt-1 text-xs leading-relaxed lg:text-[11px] ${
+                        isPassed ? 'text-[#475569]' : 'text-[#9CA3AF]'
+                      }`}>
+                        {step.description}
+                      </p>
                     </div>
-                    <p
-                      className={`text-[11px] sm:text-xs leading-tight ${
-                        isPassed ? 'text-[#111827] font-semibold' : 'text-[#9CA3AF]'
-                      }`}
-                    >
-                      {step.label}
-                    </p>
                   </div>
                 );
               })}
@@ -270,6 +369,10 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
               </span>
             )}
           </div>
+        </div>
+
+        <div className="mb-8">
+          <CourierContactCard order={order} />
         </div>
 
         {/* Snapshotted Itemized Receipt */}
@@ -340,6 +443,13 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({
 
           {/* Bottom Actions */}
           <div className="pt-4 flex flex-col sm:flex-row gap-3">
+            <button
+              id="btn-order-success-track"
+              onClick={() => navigateTo({ type: 'order-status', orderNumber: order.order_number })}
+              className="flex-1 py-3 px-4 rounded-xl border border-[#E5E7EB] text-[#111827] bg-[#FFF8ED] hover:bg-[#FFF8ED]/80 font-semibold text-xs uppercase tracking-wider text-center transition-colors min-h-[44px]"
+            >
+              View Order Status
+            </button>
             <button
               id="btn-order-success-browse-more"
               onClick={() => navigateTo({ type: 'menu' })}

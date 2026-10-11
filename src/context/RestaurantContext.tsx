@@ -4,6 +4,7 @@ import {
   Category,
   Product,
   CartItem,
+  CourierOption,
   Order,
   OrderItem,
   NotificationLog,
@@ -16,14 +17,43 @@ import {
   UserRole,
 } from '../types';
 import { storageService } from '../services/storageService';
-import { notificationService } from '../services/notificationService';
+import {
+  applyRealtimeEvent,
+  createRealtimeWebSocketUrl,
+  RealtimeManager,
+  type RealtimeConnectionStatus,
+  type RealtimeEvent,
+} from '../api/realtime';
+
+import { fetchSiteConfig, saveSiteConfig } from '../api/siteConfig';
+import {
+  deleteCategoryApi,
+  deleteCompletedOrderApi,
+  deleteProductApi,
+  deleteSectionApi,
+  assignOrderCourierApi,
+  fetchAdminCouriers,
+  fetchAdminNotifications,
+  retryAdminNotification,
+  saveCategoryApi,
+  saveSectionApi,
+} from '../api/admin';
 
 import {
   loginUser,
   registerUser,
   getCurrentUser,
   logoutUser,
+  updateCurrentUserProfile,
+  forgotPasswordUser,
 } from "../api/auth";
+
+import {
+  fetchMenu
+} from '../api/menu';
+import { saveProductApi } from '../api/products';
+
+import { createOrderApi, fetchMyOrders, trackOrderApi, updateOrderStatusApi } from '../api/orders';
 
 interface ToastInfo {
   id: string;
@@ -40,7 +70,7 @@ interface RestaurantContextType {
   activeProducts: Product[];
   featuredProducts: Product[];
   siteConfig: SiteConfiguration;
-  
+
   // Cart
   cart: CartItem[];
   cartCount: number;
@@ -51,16 +81,19 @@ interface RestaurantContextType {
   updateCartQuantity: (productId: string, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
-  
+
   // Views / Routing
   activeView: ActiveView;
   navigateTo: (view: ActiveView) => void;
   selectedProductModal: Product | null;
   setSelectedProductModal: (prod: Product | null) => void;
-  
+
   // Orders & Notifications
   orders: Order[];
   notifications: NotificationLog[];
+  couriers: CourierOption[];
+  realtimeStatus: RealtimeConnectionStatus;
+  lastRealtimeEvent: RealtimeEvent | null;
   createOrder: (params: {
     customer_name: string;
     customer_phone: string;
@@ -68,19 +101,31 @@ interface RestaurantContextType {
     order_type: OrderType;
     delivery_address?: string;
     customer_note?: string;
+    idempotency_key: string;
   }) => Promise<{ success: boolean; order?: Order; error?: string }>;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => { success: boolean; error?: string };
+  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<{ success: boolean; error?: string }>;
+  lookupOrder: (orderNumber: string, token?: string) => Promise<Order>;
   retryNotification: (logId: string) => Promise<{ success: boolean; error?: string }>;
-  
+
   // Admin catalog actions
-  saveProduct: (product: Product) => void;
-  saveCategory: (category: Category) => void;
-  saveSection: (section: Section) => void;
-  updateSiteConfig: (config: SiteConfiguration) => void;
-  resetToDefaults: () => void;
+  saveProduct: (
+    product: Product,
+    imageFile?: File | null
+  ) => Promise<{ success: boolean; error?: string }>;
+  saveCategory: (category: Category) => Promise<{ success: boolean; error?: string }>;
+  saveSection: (section: Section, imageFile?: File | null) => Promise<{ success: boolean; error?: string }>;
+  deleteProduct: (id: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  deleteCategory: (id: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  deleteSection: (id: string, name: string) => Promise<{ success: boolean; error?: string }>;
+  deleteCompletedOrder: (id: string) => Promise<{ success: boolean; error?: string }>;
+  assignOrderCourier: (orderId: string, courierId: string | null) => Promise<{ success: boolean; error?: string }>;
+  updateSiteConfig: (config: SiteConfiguration, logoFile?: File | null) => Promise<{ success: boolean; error?: string }>;
 
   // Complete User & Role Authentication
   currentUser: User | null;
+  authLoading: boolean;
+  authRestoreError: string | null;
+  retryAuthRestore: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isAuthModalOpen: boolean;
@@ -88,27 +133,36 @@ interface RestaurantContextType {
   openAuthModal: (tab?: 'login' | 'register') => void;
   closeAuthModal: () => void;
   login: (
-  email: string,
-  password: string
-) => Promise<{
-  success: boolean;
-  user?: User;
-  error?: string;
-}>;
+    email: string,
+    password: string
+  ) => Promise<{
+    success: boolean;
+    user?: User;
+    error?: string;
+  }>;
+
+  forgotPassword: (email: string) => Promise<{
+    success: boolean;
+    message?: string;
+    error?: string;
+  }>;
 
   register: (params: {
-  full_name: string;
-  email: string;
-  phone_number: string;
-  delivery_address: string;
-  password: string;
-}) => Promise<{
-  success: boolean;
-  user?: User;
-  error?: string;
-}>;
+    full_name: string;
+    email: string;
+    phone_number: string;
+    delivery_address: string;
+    password: string;
+  }) => Promise<{
+    success: boolean;
+    user?: User;
+    error?: string;
+  }>;
+  updateProfile: (profile: Pick<User, 'full_name' | 'phone_number'>) => Promise<{
+    success: boolean;
+    error?: string;
+  }>;
   logout: () => void;
-  updateProfile: (updates: Partial<User>) => { success: boolean; user?: User; error?: string };
   userOrders: Order[];
   canUserTrackOrder: (order: Order) => boolean;
   isOrderOwnedByUser: (order: Order) => boolean;
@@ -118,7 +172,7 @@ interface RestaurantContextType {
   isAdminAuthenticated: boolean;
   isAdminLoginModalOpen: boolean;
   setIsAdminLoginModalOpen: (open: boolean) => void;
-  loginAdmin: (email: string, password: string) => { success: boolean; error?: string };
+  loginAdmin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logoutAdmin: () => void;
 
   // Toast
@@ -126,23 +180,72 @@ interface RestaurantContextType {
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
 
+
+
   // Helper
   formatMoney: (amount: number) => string;
+
+  // Menu
+  menuLoading: boolean;
+  menuError: string | null;
+  reloadMenu: () => Promise<void>;
 }
 
 const RestaurantContext = createContext<RestaurantContextType | undefined>(undefined);
 
+const requiresAuthentication = (view: ActiveView) =>
+  view.type === 'my-orders' || view.type === 'order-status' || view.type === 'profile' || view.type === 'courier' || view.type === 'admin';
+
 export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [sections, setSections] = useState<Section[]>(() => storageService.getSections());
-  const [categories, setCategories] = useState<Category[]>(() => storageService.getCategories());
-  const [products, setProducts] = useState<Product[]>(() => storageService.getProducts());
-  const [siteConfig, setSiteConfig] = useState<SiteConfiguration>(() => storageService.getSiteConfig());
-  const [cart, setCart] = useState<CartItem[]>(() => storageService.getCart());
-  const [orders, setOrders] = useState<Order[]>(() => storageService.getOrders());
-  const [notifications, setNotifications] = useState<NotificationLog[]>(() => storageService.getNotifications());
-  
+  const [sections, setSections] = useState<Section[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [menuLoading, setMenuLoading] = useState(true);
+  const [menuError, setMenuError] = useState<string | null>(null);
+  const DEFAULT_SITE_CONFIG: SiteConfiguration = {
+    restaurant_name: '',
+    tagline: '',
+    logo: '',
+    phone: '',
+    whatsapp_number: '',
+    email: '',
+    address: '',
+    description: '',
+    opening_hours: '',
+    currency_symbol: '₦',
+    currency_code: 'NGN',
+    delivery_enabled: true,
+    pickup_enabled: true,
+    default_delivery_fee: 0,
+  };
+  const [siteConfig, setSiteConfig] = useState<SiteConfiguration>(DEFAULT_SITE_CONFIG);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [notifications, setNotifications] = useState<NotificationLog[]>([]);
+  const [couriers, setCouriers] = useState<CourierOption[]>([]);
+  const [realtimeStatus, setRealtimeStatus] = useState<RealtimeConnectionStatus>('disconnected');
+  const [lastRealtimeEvent, setLastRealtimeEvent] = useState<RealtimeEvent | null>(null);
+
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [activeView, setActiveView] = useState<ActiveView>({ type: 'home' });
+  const VIEW_KEY = 'mimis_active_view';
+
+  const [activeView, setActiveView] = useState<ActiveView>(() => {
+    try {
+      const saved = sessionStorage.getItem(VIEW_KEY);
+      return saved ? (JSON.parse(saved) as ActiveView) : { type: 'home' };
+    } catch {
+      return { type: 'home' };
+    }
+  });
+  const [pendingAuthView, setPendingAuthView] = useState<ActiveView | null>(null);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(VIEW_KEY, JSON.stringify(activeView));
+    } catch {
+      /* storage unavailable, ignore */
+    }
+  }, [activeView]);
   const [selectedProductModal, setSelectedProductModal] = useState<Product | null>(null);
   const [toasts, setToasts] = useState<ToastInfo[]>([]);
 
@@ -160,41 +263,90 @@ export const RestaurantProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // User Authentication & Roles State
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-const [authLoading, setAuthLoading] = useState(true);
-useEffect(() => {
-  let mounted = true;
+  useEffect(() => {
+    let cancelled = false;
+    setOrders([]); // never carry one user's orders into the next session
+    if (!currentUser) return;
 
-  const loadAuthenticatedUser = async () => {
-    try {
-      const data = await getCurrentUser();
+    fetchMyOrders()
+      .then((data) => { if (!cancelled) setOrders(data); })
+      .catch(() => { if (!cancelled) setOrders([]); });
 
-      if (mounted) {
-        setCurrentUser(data);
+    return () => { cancelled = true; };
+  }, [currentUser?.id]);
+
+  useEffect(() => {
+    if (!currentUser?.is_admin) {
+      setNotifications([]);
+      setCouriers([]);
+      return;
+    }
+    let cancelled = false;
+    fetchAdminNotifications()
+      .then((logs) => { if (!cancelled) setNotifications(logs); })
+      .catch((error) => {
+        if (!cancelled) showToast(error instanceof Error ? error.message : 'Unable to load notifications.', 'error');
+      });
+    fetchAdminCouriers()
+      .then((items) => { if (!cancelled) setCouriers(items); })
+      .catch((error) => {
+        if (!cancelled) showToast(error instanceof Error ? error.message : 'Unable to load couriers.', 'error');
+      });
+    return () => { cancelled = true; };
+  }, [currentUser?.id, currentUser?.is_admin, showToast]);
+
+
+
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authRestoreError, setAuthRestoreError] = useState<string | null>(null);
+  const cartKey = currentUser ? `mimis_cart:${currentUser.id}` : 'mimis_cart:guest';
+
+  const persistCart = useCallback(
+    (items: CartItem[]) => {
+      try {
+        localStorage.setItem(cartKey, JSON.stringify(items));
+      } catch {
+        /* storage unavailable, ignore */
       }
+    },
+    [cartKey]
+  );
+
+  // load the right cart whenever the user changes (login, logout, page load)
+  useEffect(() => {
+    if (authLoading) return; // wait until we know who is signed in
+    try {
+      const raw = localStorage.getItem(cartKey);
+      const parsed = raw ? JSON.parse(raw) : [];
+      setCart(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      setCart([]);
+    }
+  }, [authLoading, cartKey]);
+  const retryAuthRestore = useCallback(async () => {
+    setAuthLoading(true);
+    setAuthRestoreError(null);
+    try {
+      const user = await getCurrentUser();
+      setCurrentUser(user);
     } catch (error) {
       console.error("Failed to restore authentication:", error);
-
-      if (mounted) {
-        setCurrentUser(null);
-      }
+      setAuthRestoreError(
+        error instanceof Error ? error.message : "Unable to restore your session."
+      );
     } finally {
-      if (mounted) {
-        setAuthLoading(false);
-      }
+      setAuthLoading(false);
     }
-  };
+  }, []);
 
-  loadAuthenticatedUser();
-
-  return () => {
-    mounted = false;
-  };
-}, []);
+  useEffect(() => {
+    void retryAuthRestore();
+  }, [retryAuthRestore]);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
 
   const isAuthenticated = Boolean(currentUser);
-  const isAdmin = Boolean(currentUser && currentUser.role === 'admin');
+  const isAdmin = Boolean(currentUser?.is_admin);
 
   const openAuthModal = useCallback((tab: 'login' | 'register' = 'login') => {
     setAuthModalTab(tab);
@@ -206,105 +358,133 @@ useEffect(() => {
   }, []);
 
   const login = async (email: string, password: string) => {
-  try {
-    const data = await loginUser(email, password);
+    try {
+      const data = await loginUser(email, password);
 
-    setCurrentUser(data.user);
+      setCurrentUser(data.user);
+      if (pendingAuthView) {
+        setActiveView(pendingAuthView);
+        setPendingAuthView(null);
+      }
+      setIsAuthModalOpen(false);
 
-    return {
-      success: true,
-      user: data.user,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Invalid email or password.",
-    };
-  }
-};
+      return {
+        success: true,
+        user: data.user,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Invalid email or password.",
+      };
+    }
+  };
 
 
 
-const register = async (payload: {
-  full_name: string;
-  email: string;
-  phone_number: string;
-  delivery_address: string;
-  password: string;
-}) => {
-  try {
-    const data = await registerUser(payload);
+  const forgotPassword = async (email: string) => {
+    try {
+      const data = await forgotPasswordUser(email);
 
-    setCurrentUser(data.user);
+      return {
+        success: true,
+        message:
+          data.message ||
+          data.detail ||
+          "If an account exists for this email, password reset instructions have been sent.",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to send reset instructions.",
+      };
+    }
+  };
 
-    return {
-      success: true,
-      user: data.user,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to create account.",
-    };
-  }
-};
+  const register = async (payload: {
+    full_name: string;
+    email: string;
+    phone_number: string;
+    delivery_address: string;
+    password: string;
+  }) => {
+    try {
+      const data = await registerUser(payload);
+
+      return {
+        success: true,
+        user: data.user,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to create account.",
+      };
+    }
+  };
 
   const logout = useCallback(async () => {
-  try {
-    await logoutUser();
-  } catch (error) {
-    console.error("Logout error:", error);
-  } finally {
-    setCurrentUser(null);
+    try {
+      await logoutUser();
+      setCurrentUser(null);
+      setIsCartOpen(false);
+      setSelectedProductModal(null);
+      setActiveView({ type: 'home' });
+      setPendingAuthView(null);
+      setSections([]);
+      setCategories([]);
+      setProducts([]);
 
-    showToast("Signed out successfully.", "info");
+      showToast("Signed out successfully.", "info");
 
-    setActiveView((curr) =>
-      curr.type === "admin" || curr.type === "my-orders"
-        ? { type: "home" }
-        : curr
-    );
-  }
-}, [showToast]);
+      setActiveView((curr) =>
+        curr.type === "admin" || curr.type === "my-orders"
+          ? { type: "home" }
+          : curr
+      );
+    } catch (error) {
+      console.error("Logout error:", error);
+      showToast("Could not sign out. Please try again.", "error");
+    }
+  }, [showToast]);
 
-  const updateProfile = useCallback(
-    (updates: Partial<User>) => {
-      if (!currentUser) return { success: false, error: 'Not signed in' };
-      const res = storageService.updateUserProfile(currentUser.id, updates);
-      if (res.success && res.user) {
-        setCurrentUser(res.user);
-        showToast('Profile updated successfully!', 'success');
-        return { success: true, user: res.user };
-      }
-      return { success: false, error: res.error || 'Failed to update profile.' };
-    },
-    [currentUser, showToast]
+  const updateProfile = useCallback(async (profile: Pick<User, 'full_name' | 'phone_number'>) => {
+    try {
+      const updatedUser = await updateCurrentUserProfile(profile) as User;
+      setCurrentUser(updatedUser);
+      showToast('Profile updated successfully.', 'success');
+      return { success: true };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to update your profile.';
+      return { success: false, error: message };
+    }
+  }, [showToast]);
+
+  const userOrders = useMemo(
+    () => (currentUser ? orders.filter((o) => o.user_id === currentUser.id) : []),
+    [currentUser, orders]
   );
 
-  const userOrders = useMemo(() => {
-    if (!currentUser) return [];
-    return storageService.getOrdersForUser(currentUser);
-  }, [currentUser, orders]);
 
   const canUserTrackOrder = useCallback(
-    (order: Order) => {
-      return storageService.canUserTrackOrder(order, currentUser);
-    },
+    (order: Order) => Boolean(currentUser && (currentUser.is_admin || order.user_id === currentUser.id)),
     [currentUser]
   );
 
   const isOrderOwnedByUser = useCallback(
-    (order: Order) => {
-      return storageService.isOrderOwnedByUser(order, currentUser);
-    },
+    (order: Order) => Boolean(currentUser && order.user_id === currentUser.id),
     [currentUser]
   );
+
 
   // Backwards compatibility aliases for admin authentication
   const adminUser = isAdmin ? currentUser : null;
@@ -322,13 +502,13 @@ const register = async (payload: {
   );
 
   const loginAdmin = useCallback(
-    (email: string, password: string) => {
-      const res = login(email, password);
+    async (email: string, password: string) => {
+      const res = await login(email, password);
       if (res.success && res.user) {
-        if (res.user.role !== 'admin') {
+        if (!res.user.is_admin) {
           return {
             success: false,
-            error: `Access denied. Signed in as ${res.user.name} (${res.user.role}). Administrator role required.`,
+            error: `Access denied. Signed in as ${res.user.full_name}. Administrator role required.`,
           };
         }
         return { success: true };
@@ -340,15 +520,88 @@ const register = async (payload: {
 
   const logoutAdmin = logout;
 
+  const reloadMenu = useCallback(async (silent = false) => {
+    if (!silent) setMenuLoading(true);
+    setMenuError(null);
+    try {
+      const data = await fetchMenu();
+      setSections(data.sections);
+      setCategories(data.categories);
+      setProducts(data.products);
+
+      // drop cart lines whose product no longer exists on the backend
+      const validIds = new Set(data.products.map((p) => p.id));
+      setCart((prev) => {
+        const cleaned = prev.filter((i) => validIds.has(i.product_id));
+        if (cleaned.length !== prev.length) storageService.saveCart(cleaned);
+        return cleaned;
+      });
+    } catch (e) {
+      setMenuError(e instanceof Error ? e.message : 'Could not load the menu');
+    } finally {
+      setMenuLoading(false);
+    }
+  }, [currentUser]);
+
+  const loadSiteConfig = useCallback(async () => {
+    try {
+      setSiteConfig(await fetchSiteConfig());
+    } catch (e) {
+      console.error('Failed to load site configuration:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSiteConfig();
+  }, [loadSiteConfig]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    reloadMenu();
+  }, [authLoading, reloadMenu]);
+
   // Sync state helpers
   const refreshCatalog = useCallback(() => {
-    setSections(storageService.getSections());
-    setCategories(storageService.getCategories());
-    setProducts(storageService.getProducts());
-    setSiteConfig(storageService.getSiteConfig());
-    setOrders(storageService.getOrders());
-    setNotifications(storageService.getNotifications());
-  }, []);
+    reloadMenu();
+    loadSiteConfig();
+  }, [reloadMenu, loadSiteConfig]);
+
+  const handleRealtimeEvent = useCallback((event: RealtimeEvent) => {
+    setLastRealtimeEvent(event);
+    applyRealtimeEvent(event, Boolean(currentUser?.is_admin), {
+      refreshCatalog: () => { void reloadMenu(true); },
+      refreshSiteConfiguration: () => {
+        void fetchSiteConfig().then(setSiteConfig).catch((error) => {
+          console.error('Failed to refresh site configuration:', error);
+        });
+      },
+      refreshOrders: () => {
+        void fetchMyOrders().then(setOrders).catch((error) => {
+          console.error('Failed to refresh orders:', error);
+        });
+      },
+      refreshNotifications: () => {
+        void fetchAdminNotifications().then(setNotifications).catch((error) => {
+          console.error('Failed to refresh notifications:', error);
+        });
+      },
+    });
+  }, [currentUser?.is_admin, reloadMenu]);
+
+  useEffect(() => {
+    if (authLoading || !currentUser) {
+      setRealtimeStatus('disconnected');
+      return;
+    }
+
+    const manager = new RealtimeManager({
+      url: createRealtimeWebSocketUrl(),
+      onEvent: handleRealtimeEvent,
+      onStatus: setRealtimeStatus,
+    });
+    manager.connect();
+    return () => manager.disconnect();
+  }, [authLoading, currentUser?.id, handleRealtimeEvent]);
 
   // Format money helper
   const formatMoney = useCallback(
@@ -362,7 +615,7 @@ const register = async (payload: {
   // Active items memos
   const activeSections = useMemo(() => sections.filter((s) => s.is_active), [sections]);
   const activeCategories = useMemo(() => categories.filter((c) => c.is_active), [categories]);
-  
+
   const activeProducts = useMemo(() => {
     const activeCatIds = new Set(activeCategories.map((c) => c.id));
     const activeSecIds = new Set(activeSections.map((s) => s.id));
@@ -394,16 +647,17 @@ const register = async (payload: {
   // Cart operations
   const addToCart = useCallback(
     (productId: string, quantity = 1) => {
-      const eligibility = storageService.isProductEligible(productId);
-      if (!eligibility.eligible) {
-        showToast(eligibility.reason || 'This item cannot be added.', 'error');
-        return { success: false, message: eligibility.reason };
-      }
-
       const product = products.find((p) => p.id === productId);
       if (!product) return { success: false, message: 'Product not found.' };
 
-      let updatedCart = [...cart];
+      const isEligible = activeProducts.some((p) => p.id === productId);
+      if (!isEligible) {
+        const reason = 'This item is currently unavailable.';
+        showToast(reason, 'error');
+        return { success: false, message: reason };
+      }
+
+      const updatedCart = [...cart];
       const existingIdx = updatedCart.findIndex((i) => i.product_id === productId);
 
       if (existingIdx >= 0) {
@@ -418,7 +672,7 @@ const register = async (payload: {
       showToast(`Added ${product.name} to cart`, 'success');
       return { success: true };
     },
-    [cart, products, showToast]
+    [cart, products, activeProducts, showToast, currentUser, openAuthModal]
   );
 
   const updateCartQuantity = useCallback(
@@ -462,120 +716,218 @@ const register = async (payload: {
       order_type: OrderType;
       delivery_address?: string;
       customer_note?: string;
+      idempotency_key: string;
     }) => {
-      const idempotencyToken = `tok-${params.customer_phone}-${cart.map((c) => `${c.product_id}:${c.quantity}`).join('-')}`;
-      const result = await storageService.createOrder({
-        ...params,
-        user_id: currentUser?.id,
-        cart_items: cart,
-        idempotency_token: idempotencyToken,
-      });
-
-      if (result.success && result.order) {
+      try {
+        const { idempotency_key, ...orderParams } = params;
+        const order = await createOrderApi({
+          ...orderParams,
+          items: cart.map((c) => ({ product_id: c.product_id, quantity: c.quantity })),
+        }, idempotency_key);
         setCart([]);
-        setOrders(storageService.getOrders());
-        setNotifications(storageService.getNotifications());
-        showToast(`Order ${result.order.order_number} confirmed!`, 'success');
-        return { success: true, order: result.order };
-      } else {
-        showToast(result.error || 'Failed to place order. Please try again.', 'error');
-        return { success: false, error: result.error };
+        storageService.clearCart();
+        setOrders((prev) => [order, ...prev]);
+        showToast(`Order ${order.order_number} confirmed!`, 'success');
+        return { success: true, order };
+      } catch (e) {
+        const error = e instanceof Error ? e.message : 'Failed to place order. Please try again.';
+        showToast(error, 'error');
+        return { success: false, error };
       }
     },
-    [cart, currentUser, showToast]
+    [cart, showToast, currentUser, openAuthModal]
   );
 
   const updateOrderStatus = useCallback(
-    (orderId: string, status: OrderStatus) => {
-      const res = storageService.updateOrderStatus(orderId, status);
-      if (res.success) {
-        setOrders(storageService.getOrders());
+    async (orderId: string, status: OrderStatus) => {
+      try {
+        const updated = await updateOrderStatusApi(orderId, status);
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? updated : o)));
         showToast(`Order status updated to ${status}`, 'success');
-      } else {
-        showToast(res.error || 'Status update failed.', 'error');
+        return { success: true };
+      } catch (e) {
+        const error = e instanceof Error ? e.message : 'Status update failed.';
+        showToast(error, 'error');
+        return { success: false, error };
       }
-      return res;
     },
     [showToast]
+  );
+
+  const lookupOrder = useCallback(
+    (orderNumber: string, token?: string) => {
+      return trackOrderApi(orderNumber, token);
+    },
+    []
   );
 
   const retryNotification = useCallback(
     async (logId: string) => {
-      const logs = storageService.getNotifications();
-      const log = logs.find((l) => l.id === logId);
-      if (!log) return { success: false, error: 'Notification log not found.' };
-
-      const order = storageService.getOrderByNumber(log.order_number);
-      if (!order) return { success: false, error: 'Associated order not found.' };
-
-      const res = await notificationService.retryNotification(log, order, siteConfig);
-      storageService.saveNotification(res.log);
-      order.whatsapp_status = res.status;
-      order.whatsapp_message_id = res.messageId;
-      storageService.updateOrder(order);
-
-      setNotifications(storageService.getNotifications());
-      setOrders(storageService.getOrders());
-
-      if (res.status === 'SENT') {
-        showToast('WhatsApp notification sent successfully!', 'success');
-        return { success: true };
-      } else {
-        showToast(`Retry failed: ${res.error || 'Unknown error'}`, 'error');
-        return { success: false, error: res.error };
+      try {
+        const log = await retryAdminNotification(logId);
+        setNotifications((previous) => previous.map((item) => item.id === log.id ? log : item));
+        setOrders((previous) => previous.map((order) => order.id === log.order_id
+          ? { ...order, whatsapp_status: log.status, whatsapp_message_id: log.provider_message_id }
+          : order));
+        if (log.status === 'SENT') {
+          showToast('WhatsApp notification sent successfully!', 'success');
+          return { success: true };
+        }
+        showToast(log.last_error || 'WhatsApp dispatch failed.', 'error');
+        return { success: false, error: log.last_error };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to retry notification.';
+        showToast(message, 'error');
+        return { success: false, error: message };
       }
-    },
-    [siteConfig, showToast]
-  );
-
-  // Admin Catalog actions
-  const saveProduct = useCallback(
-    (product: Product) => {
-      storageService.saveProduct(product);
-      refreshCatalog();
-      showToast(`Product "${product.name}" saved.`, 'success');
-    },
-    [refreshCatalog, showToast]
-  );
-
-  const saveCategory = useCallback(
-    (category: Category) => {
-      storageService.saveCategory(category);
-      refreshCatalog();
-      showToast(`Category "${category.name}" saved.`, 'success');
-    },
-    [refreshCatalog, showToast]
-  );
-
-  const saveSection = useCallback(
-    (section: Section) => {
-      storageService.saveSection(section);
-      refreshCatalog();
-      showToast(`Section "${section.name}" saved.`, 'success');
-    },
-    [refreshCatalog, showToast]
-  );
-
-  const updateSiteConfig = useCallback(
-    (config: SiteConfiguration) => {
-      storageService.saveSiteConfig(config);
-      setSiteConfig(config);
-      showToast('Restaurant configuration updated.', 'success');
     },
     [showToast]
   );
 
-  const resetToDefaults = useCallback(() => {
-    storageService.resetToSeedData();
-    refreshCatalog();
-    setCart(storageService.getCart());
-    showToast('Platform reset to initial seed data.', 'info');
-  }, [refreshCatalog, showToast]);
+  // Admin Catalog actions
+  const saveProduct = useCallback(
+    async (product: Product, imageFile?: File | null) => {
+      try {
+        await saveProductApi(product, imageFile);
+        await reloadMenu();
+        showToast(`Product "${product.name}" saved.`, 'success');
+        return { success: true };
+      } catch (e) {
+        const error = e instanceof Error ? e.message : 'Unable to save product.';
+        showToast(error, 'error');
+        return { success: false, error };
+      }
+    },
+    [reloadMenu, showToast]
+  );
+  const saveCategory = useCallback(
+    async (category: Category) => {
+      try {
+        await saveCategoryApi(category);
+        await reloadMenu();
+        showToast(`Category "${category.name}" saved.`, 'success');
+        return { success: true };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to save category.';
+        showToast(message, 'error');
+        return { success: false, error: message };
+      }
+    },
+    [reloadMenu, showToast]
+  );
+
+  const saveSection = useCallback(
+    async (section: Section, imageFile?: File | null) => {
+      try {
+        await saveSectionApi(section, imageFile);
+        await reloadMenu();
+        showToast(`Section "${section.name}" saved.`, 'success');
+        return { success: true };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to save section.';
+        showToast(message, 'error');
+        return { success: false, error: message };
+      }
+    },
+    [reloadMenu, showToast]
+  );
+
+  const deleteCatalogEntry = useCallback(
+    async (deleteRequest: (id: string) => Promise<void>, id: string, label: string) => {
+      try {
+        await deleteRequest(id);
+        await reloadMenu();
+        showToast(`${label} deleted.`, 'success');
+        return { success: true };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : `Unable to delete ${label.toLowerCase()}.`;
+        showToast(message, 'error');
+        return { success: false, error: message };
+      }
+    },
+    [reloadMenu, showToast]
+  );
+
+  const deleteProduct = useCallback(
+    (id: string, name: string) => deleteCatalogEntry(deleteProductApi, id, `Product "${name}"`),
+    [deleteCatalogEntry]
+  );
+
+  const deleteCategory = useCallback(
+    (id: string, name: string) => deleteCatalogEntry(deleteCategoryApi, id, `Category "${name}"`),
+    [deleteCatalogEntry]
+  );
+
+  const deleteSection = useCallback(
+    (id: string, name: string) => deleteCatalogEntry(deleteSectionApi, id, `Section "${name}"`),
+    [deleteCatalogEntry]
+  );
+
+  const deleteCompletedOrder = useCallback(
+    async (id: string) => {
+      try {
+        await deleteCompletedOrderApi(id);
+        setOrders((previous) => previous.filter((order) => order.id !== id));
+        setNotifications((previous) => previous.filter((notification) => notification.order_id !== id));
+        showToast('Completed order deleted.', 'success');
+        return { success: true };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to delete completed order.';
+        showToast(message, 'error');
+        return { success: false, error: message };
+      }
+    },
+    [showToast]
+  );
+
+  const assignOrderCourier = useCallback(
+    async (orderId: string, courierId: string | null) => {
+      try {
+        const updatedOrder = await assignOrderCourierApi(orderId, courierId);
+        setOrders((previous) => previous.map((order) => order.id === orderId ? updatedOrder : order));
+        showToast(
+          courierId ? `Courier assigned to ${updatedOrder.order_number}.` : `Courier removed from ${updatedOrder.order_number}.`,
+          'success',
+        );
+        return { success: true };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unable to assign courier.';
+        showToast(message, 'error');
+        return { success: false, error: message };
+      }
+    },
+    [showToast]
+  );
+
+  const updateSiteConfig = useCallback(
+    async (config: SiteConfiguration, logoFile?: File | null) => {
+      try {
+        setSiteConfig(await saveSiteConfig(config, logoFile));
+        showToast('Restaurant configuration updated.', 'success');
+        return { success: true };
+      } catch (e) {
+        const error = e instanceof Error ? e.message : 'Could not save settings.';
+        showToast(error, 'error');
+        return { success: false, error };
+      }
+    },
+    [showToast]
+  );
 
   const navigateTo = useCallback((view: ActiveView) => {
+    if (!currentUser && requiresAuthentication(view)) {
+      setPendingAuthView(view);
+      setActiveView({ type: 'home' });
+      setIsCartOpen(false);
+      openAuthModal('login');
+      return;
+    }
+    if (view.type === 'home') setPendingAuthView(null);
     setActiveView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [currentUser, openAuthModal]);
+  // menu
+
 
   return (
     <RestaurantContext.Provider
@@ -603,16 +955,27 @@ const register = async (payload: {
         setSelectedProductModal,
         orders,
         notifications,
+        couriers,
+        realtimeStatus,
+        lastRealtimeEvent,
         createOrder,
+        lookupOrder,
         updateOrderStatus,
         retryNotification,
         saveProduct,
         saveCategory,
         saveSection,
+        deleteProduct,
+        deleteCategory,
+        deleteSection,
+        deleteCompletedOrder,
+        assignOrderCourier,
         updateSiteConfig,
-        resetToDefaults,
         // Complete User & Role Authentication
         currentUser,
+        authLoading,
+        authRestoreError,
+        retryAuthRestore,
         isAuthenticated,
         isAdmin,
         isAuthModalOpen,
@@ -620,9 +983,10 @@ const register = async (payload: {
         openAuthModal,
         closeAuthModal,
         login,
+        forgotPassword,
         register,
-        logout,
         updateProfile,
+        logout,
         userOrders,
         canUserTrackOrder,
         isOrderOwnedByUser,
@@ -637,6 +1001,9 @@ const register = async (payload: {
         showToast,
         removeToast,
         formatMoney,
+        menuLoading,
+        menuError,
+        reloadMenu,
       }}
     >
       {children}

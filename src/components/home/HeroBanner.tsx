@@ -3,7 +3,7 @@ import { useRestaurant } from '../../context/RestaurantContext';
 import { Flame, Clock, Truck, ShieldCheck, ArrowRight, Utensils } from 'lucide-react';
 
 export const HeroBanner: React.FC = () => {
-  const { siteConfig, navigateTo, formatMoney } = useRestaurant();
+  const { siteConfig, navigateTo, formatMoney, isAuthenticated } = useRestaurant();
 
   return (
     <section id="hero-section" className="relative overflow-hidden bg-[#FFF8ED] text-[#111827] py-12 sm:py-18 lg:py-24 border-b border-[#E5E7EB]">
@@ -39,6 +39,10 @@ export const HeroBanner: React.FC = () => {
               <button
                 id="hero-btn-browse-sections"
                 onClick={() => {
+                  if (!isAuthenticated) {
+                    navigateTo({ type: 'menu' });
+                    return;
+                  }
                   const element = document.getElementById('home-sections-grid');
                   element?.scrollIntoView({ behavior: 'smooth' });
                 }}

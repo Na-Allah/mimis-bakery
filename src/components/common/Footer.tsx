@@ -20,7 +20,7 @@ export const Footer: React.FC = () => {
   );
 
   return (
-    <footer id="main-footer" className="bg-[#FFF8ED] text-[#475569] pt-14 pb-12 border-t border-[#E5E7EB]">
+    <footer id="main-footer" className="bg-[#FFF8ED] text-[#475569] pt-14 pb-32 lg:pb-12 border-t border-[#E5E7EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 mb-10">
           {/* Brand info */}
@@ -71,11 +71,11 @@ export const Footer: React.FC = () => {
               ))}
               <li>
                 <button
-                  id="footer-link-track"
-                  onClick={() => navigateTo({ type: 'track-order' })}
+                  id="footer-link-my-orders"
+                  onClick={() => navigateTo({ type: 'my-orders' })}
                   className="text-[#475569] hover:text-[#C8102E] transition-colors cursor-pointer py-1 block"
                 >
-                  Track Existing Order
+                  My Orders
                 </button>
               </li>
             </ul>
@@ -135,7 +135,7 @@ export const Footer: React.FC = () => {
                   className="text-xs text-[#C8102E] hover:text-[#A70D26] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer min-h-[44px]"
                 >
                   <ShieldAlert className="w-3.5 h-3.5" />
-                  <span>Admin Portal ({adminUser?.name || 'Administrator'})</span>
+                  <span>Admin Portal ({adminUser?.full_name || 'Administrator'})</span>
                 </button>
               ) : (
                 <button

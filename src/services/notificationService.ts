@@ -14,7 +14,7 @@ export interface WhatsAppProvider {
 }
 
 /**
- * Message Builder for WhatsApp Notifications (Section 27 of spec.md)
+ * Message Builder for WhatsApp Notifications (Section 237 of spec.md)
  */
 export function buildOrderWhatsAppMessage(order: Order, config: SiteConfiguration): string {
   const currency = config.currency_symbol || '₦';
@@ -39,7 +39,7 @@ export function buildOrderWhatsAppMessage(order: Order, config: SiteConfiguratio
   });
 
   const parts: string[] = [
-    '🍽 NEW RESTAURANT ORDER',
+    'NEW RESTAURANT ORDER',
     '',
     `Order: ${order.order_number}`,
     '',

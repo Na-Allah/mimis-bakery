@@ -10,6 +10,7 @@ import {
   Utensils,
   ShieldCheck,
 } from 'lucide-react';
+import { getMediaUrl } from '../../utils/media';
 
 export const CartPage: React.FC = () => {
   const {
@@ -96,7 +97,7 @@ export const CartPage: React.FC = () => {
                   >
                     <div className="flex items-center gap-4">
                       <img
-                        src={product.image}
+                        src={getMediaUrl(product.image)}
                         alt={product.name}
                         referrerPolicy="no-referrer"
                         className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover bg-stone-100 border border-[#E5E7EB] shrink-0"

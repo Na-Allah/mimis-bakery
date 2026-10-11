@@ -20,11 +20,19 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 
+const MIN_PASSWORD_LENGTH = 6;
+
 export const AuthScreen: React.FC = () => {
-  const { login, register, siteConfig } = useRestaurant();
+  const { login, forgotPassword, register, siteConfig } = useRestaurant();
 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [showPassword, setShowPassword] = useState(false);
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotError, setForgotError] = useState('');
+  const [forgotMessage, setForgotMessage] = useState('');
+  const [isSendingResetLink, setIsSendingResetLink] = useState(false);
 
   // Sign In Form State
   const [loginEmail, setLoginEmail] = useState('');
@@ -38,12 +46,20 @@ export const AuthScreen: React.FC = () => {
   const [regPhone, setRegPhone] = useState('');
   const [regAddress, setRegAddress] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [confirmRegPassword, setConfirmRegPassword] = useState('');
+  const [showConfirmRegPassword, setShowConfirmRegPassword] = useState(false);
   const [regError, setRegError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setLoginError('');
+
+  if (!loginPassword) {
+    setLoginError('Please enter your password.');
+    return;
+  }
+
   setIsLoggingIn(true);
 
   const result = await login(loginEmail, loginPassword);
@@ -55,12 +71,39 @@ export const AuthScreen: React.FC = () => {
   }
 };
 
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError('');
+    setForgotMessage('');
+    setIsSendingResetLink(true);
+
+    const emailToUse = forgotEmail || loginEmail;
+    const result = await forgotPassword(emailToUse);
+
+    setIsSendingResetLink(false);
+
+    if (!result.success) {
+      setForgotError(result.error || 'Unable to send reset instructions.');
+      return;
+    }
+
+    setForgotMessage(
+      result.message || 'If an account exists for this email, reset instructions have been sent.'
+    );
+    setForgotEmail(emailToUse);
+  };
+
   const handleRegisterSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setRegError('');
 
-  if (regPassword.length < 6) {
-    setRegError('Password must be at least 6 characters long.');
+  if (regPassword.length < MIN_PASSWORD_LENGTH) {
+    setRegError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`);
+    return;
+  }
+
+  if (regPassword !== confirmRegPassword) {
+    setRegError('Passwords do not match.');
     return;
   }
 
@@ -119,7 +162,7 @@ export const AuthScreen: React.FC = () => {
             </h1>
 
             <p className="text-sm sm:text-base text-[#475569] leading-relaxed max-w-xl">
-              Welcome to <strong className="text-[#C8102E]">{siteConfig.restaurant_name}</strong>.
+              Welcome to <strong className="text-[#C8102E]">Mimis Resturant</strong>.
               To explore our chef-crafted menus, place orders, track kitchen preparations, and access administrative tools, please authenticate or register your account.
             </p>
 
@@ -170,81 +213,150 @@ export const AuthScreen: React.FC = () => {
               </div>
 
               {activeTab === 'login' ? (
-                /* --- SIGN IN FORM --- */
-                <form id="gate-login-form" onSubmit={handleLoginSubmit} className="space-y-4">
-                  {loginError && (
-                    <div
-                      id="gate-login-error"
-                      className="p-3 rounded-xl bg-red-50 border border-red-200 text-[#EF4444] text-xs flex items-start gap-2.5"
-                    >
-                      <AlertCircle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
-                      <span>{loginError}</span>
-                    </div>
-                  )}
+                isForgotPassword ? (
+                  <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                    {forgotError && (
+                      <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-[#EF4444] text-xs flex items-start gap-2.5">
+                        <AlertCircle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
+                        <span>{forgotError}</span>
+                      </div>
+                    )}
 
-                  <div>
-                    <label className="block text-xs font-medium text-[#475569] mb-1.5" htmlFor="gate-login-email">
-                      Email Address
-                    </label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                      <input
-                        id="gate-login-email"
-                        type="email"
-                        required
-                        value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
-                        placeholder="e.g. asmuhammad42@gmail.com"
-                        className="w-full pl-9 pr-3 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
-                      />
-                    </div>
-                  </div>
+                    {forgotMessage && (
+                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-start gap-2.5">
+                        <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>{forgotMessage}</span>
+                      </div>
+                    )}
 
-                  <div>
-                    <label className="block text-xs font-medium text-[#475569] mb-1.5" htmlFor="gate-login-password">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                      <input
-                        id="gate-login-password"
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full pl-9 pr-10 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
-                      />
+                    <div>
+                      <label className="block text-xs font-medium text-[#475569] mb-1.5" htmlFor="gate-forgot-email">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                        <input
+                          id="gate-forgot-email"
+                          type="email"
+                          required
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          placeholder="e.g. asmuhammad42@gmail.com"
+                          className="w-full pl-9 pr-3 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="submit"
+                        disabled={isSendingResetLink}
+                        className="flex-1 py-2.5 px-4 bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-xs rounded-xl transition shadow-sm shadow-[#C8102E]/20 disabled:opacity-60 cursor-pointer"
+                      >
+                        {isSendingResetLink ? 'Sending...' : 'Send reset link'}
+                      </button>
                       <button
                         type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#475569] cursor-pointer p-1"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        onClick={() => {
+                          setIsForgotPassword(false);
+                          setForgotError('');
+                          setForgotMessage('');
+                        }}
+                        className="px-3 py-2.5 text-xs font-medium text-[#475569] hover:text-[#111827] cursor-pointer"
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        Back
                       </button>
                     </div>
-                  </div>
-
-                  <button
-                    id="gate-login-submit-btn"
-                    type="submit"
-                    disabled={isLoggingIn}
-                    className="w-full py-3 px-4 bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-sm rounded-xl transition shadow-md shadow-[#C8102E]/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 min-h-[44px]"
-                  >
-                    {isLoggingIn ? (
-                      <span>Authenticating...</span>
-                    ) : (
-                      <>
-                        <span>Enter Restaurant</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </>
+                  </form>
+                ) : (
+                  /* --- SIGN IN FORM --- */
+                  <form id="gate-login-form" onSubmit={handleLoginSubmit} className="space-y-4">
+                    {loginError && (
+                      <div
+                        id="gate-login-error"
+                        className="p-3 rounded-xl bg-red-50 border border-red-200 text-[#EF4444] text-xs flex items-start gap-2.5"
+                      >
+                        <AlertCircle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
+                        <span>{loginError}</span>
+                      </div>
                     )}
-                  </button>
 
-                  {/* 1-Click Fast Role Sign-Ins */}
-                  
-                </form>
+                    <div>
+                      <label className="block text-xs font-medium text-[#475569] mb-1.5" htmlFor="gate-login-email">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                        <input
+                          id="gate-login-email"
+                          type="email"
+                          required
+                          value={loginEmail}
+                          onChange={(e) => setLoginEmail(e.target.value)}
+                          placeholder="e.g. asmuhammad42@gmail.com"
+                          className="w-full pl-9 pr-3 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-[#475569] mb-1.5" htmlFor="gate-login-password">
+                        Password
+                      </label>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                        <input
+                          id="gate-login-password"
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          value={loginPassword}
+                          onChange={(e) => setLoginPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full pl-9 pr-10 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#475569] cursor-pointer p-1"
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForgotEmail(loginEmail);
+                          setForgotError('');
+                          setForgotMessage('');
+                          setIsForgotPassword(true);
+                        }}
+                        className="text-xs font-medium text-[#C8102E] hover:text-[#A70D26] transition cursor-pointer"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
+
+                    <button
+                      id="gate-login-submit-btn"
+                      type="submit"
+                      disabled={isLoggingIn}
+                      className="w-full py-3 px-4 bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-sm rounded-xl transition shadow-md shadow-[#C8102E]/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 min-h-[44px]"
+                    >
+                      {isLoggingIn ? (
+                        <span>Authenticating...</span>
+                      ) : (
+                        <>
+                          <span>Enter Restaurant</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )
               ) : (
                 /* --- CREATE ACCOUNT FORM --- */
                 <form id="gate-register-form" onSubmit={handleRegisterSubmit} className="space-y-3.5">
@@ -320,15 +432,51 @@ export const AuthScreen: React.FC = () => {
                         <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
                         <input
                           id="gate-reg-password"
-                          type={showPassword ? 'text' : 'password'}
+                          type={showRegPassword ? 'text' : 'password'}
                           required
-                          minLength={6}
+                          minLength={MIN_PASSWORD_LENGTH}
                           value={regPassword}
                           onChange={(e) => setRegPassword(e.target.value)}
                           placeholder="Min 6 chars"
-                          className="w-full pl-9 pr-2 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
+                          className="w-full pl-9 pr-10 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegPassword(!showRegPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#475569] cursor-pointer p-1"
+                          aria-label={showRegPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
                       </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-[#475569] mb-1" htmlFor="gate-reg-confirm-password">
+                      Confirm Password *
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                      <input
+                        id="gate-reg-confirm-password"
+                        type={showConfirmRegPassword ? 'text' : 'password'}
+                        required
+                        minLength={MIN_PASSWORD_LENGTH}
+                        value={confirmRegPassword}
+                        onChange={(e) => setConfirmRegPassword(e.target.value)}
+                        placeholder="Re-enter your password"
+                        autoComplete="new-password"
+                        className="w-full pl-9 pr-10 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmRegPassword(!showConfirmRegPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#475569] cursor-pointer p-1"
+                        aria-label={showConfirmRegPassword ? 'Hide confirm password' : 'Show confirm password'}
+                      >
+                        {showConfirmRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
 

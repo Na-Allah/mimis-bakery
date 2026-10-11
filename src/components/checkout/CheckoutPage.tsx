@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
 import { OrderType } from '../../types';
 import {
@@ -17,6 +17,27 @@ import {
   LogIn,
 } from 'lucide-react';
 
+function createIdempotencyKey(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  const bytes = new Uint8Array(16);
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) {
+      bytes[index] = Math.floor(Math.random() * 256);
+    }
+  }
+
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 export const CheckoutPage: React.FC = () => {
   const {
     cart,
@@ -29,22 +50,23 @@ export const CheckoutPage: React.FC = () => {
     currentUser,
     openAuthModal,
   } = useRestaurant();
+  const idempotencyKey = useRef<string>(createIdempotencyKey());
 
-  const [fullName, setFullName] = useState(currentUser?.name || '');
-  const [phone, setPhone] = useState(currentUser?.phone || '');
+  const [fullName, setFullName] = useState(currentUser?.full_name || '');
+  const [phone, setPhone] = useState(currentUser?.phone_number || '');
   const [email, setEmail] = useState(currentUser?.email || '');
   const [orderType, setOrderType] = useState<OrderType>('DELIVERY');
-  const [deliveryAddress, setDeliveryAddress] = useState(currentUser?.default_address || '');
+  const [deliveryAddress, setDeliveryAddress] = useState(currentUser?.delivery_address || '');
   const [customerNote, setCustomerNote] = useState('');
 
   // Update fields if user logs in while on checkout
   React.useEffect(() => {
     if (currentUser) {
-      if (!fullName) setFullName(currentUser.name);
+      if (!fullName) setFullName(currentUser.full_name);
       if (!email) setEmail(currentUser.email);
-      if (!phone && currentUser.phone) setPhone(currentUser.phone);
-      if (!deliveryAddress && currentUser.default_address) {
-        setDeliveryAddress(currentUser.default_address);
+      if (!phone && currentUser.phone_number) setPhone(currentUser.phone_number);
+      if (!deliveryAddress && currentUser.delivery_address) {
+        setDeliveryAddress(currentUser.delivery_address);
       }
     }
   }, [currentUser]);
@@ -85,6 +107,7 @@ export const CheckoutPage: React.FC = () => {
 
     try {
       const result = await createOrder({
+        idempotency_key: idempotencyKey.current,
         customer_name: fullName.trim(),
         customer_phone: phone.trim(),
         customer_email: email.trim() || undefined,
@@ -94,7 +117,11 @@ export const CheckoutPage: React.FC = () => {
       });
 
       if (result.success && result.order) {
-        navigateTo({ type: 'order-success', orderNumber: result.order.order_number });
+        navigateTo({
+          type: 'order-success',
+          orderNumber: result.order.order_number,
+          trackingToken: result.order.tracking_token,
+        });
       } else {
         setErrorMessage(result.error || 'Failed to place order. Please review and try again.');
         setIsSubmitting(false);
@@ -133,31 +160,21 @@ export const CheckoutPage: React.FC = () => {
 
   return (
     <div id="checkout-page-container" className="min-h-screen bg-[#FFF8ED]/40 py-8 sm:py-14">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4  sm:px-6 lg:px-8">
         {/* Back Link */}
         <button
           id="checkout-btn-back"
           onClick={() => navigateTo({ type: 'menu' })}
-          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#475569] hover:text-[#111827] mb-6 transition-colors min-h-[44px] cursor-pointer"
+          className="inline-flex items-center gap-2  text-xs bg-[#C8102E] rounded-xl font-semibold uppercase tracking-wider  text-white hover:text-[#111827] mb-6 transition-colors min-h-[44px] cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Menu</span>
+
+          Menu
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Main Checkout Form */}
           <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-10 border border-[#E5E7EB] shadow-xs space-y-6 sm:space-y-8">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-widest text-[#C8102E]">
-                Express Checkout
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] mt-1">
-                Complete Your Order
-              </h1>
-              <p className="text-sm text-[#475569] mt-1">
-                Order updates and real-time status tracking will be dispatched to your phone and WhatsApp.
-              </p>
-            </div>
+
 
             {/* Account Status Notice */}
             {!currentUser ? (
@@ -179,7 +196,7 @@ export const CheckoutPage: React.FC = () => {
               <div className="p-3.5 rounded-2xl bg-[#FFF8ED] border border-[#E5E7EB] flex items-center gap-2 text-xs text-[#475569]">
                 <ShieldCheck className="w-4 h-4 text-[#C8102E] shrink-0" />
                 <span>
-                  Ordering as <strong className="text-[#111827]">{currentUser.name}</strong> ({currentUser.email}). This order will be linked to your account for private tracking.
+                  Ordering as <strong className="text-[#111827]">{currentUser.full_name}</strong> ({currentUser.email}). This order will be linked to your account for private tracking.
                 </span>
               </div>
             )}

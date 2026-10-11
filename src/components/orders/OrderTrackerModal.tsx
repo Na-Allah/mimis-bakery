@@ -6,52 +6,84 @@ import {
   ArrowRight,
   CheckCircle2,
   AlertCircle,
-  ShieldAlert,
-  Lock,
   ShoppingBag,
-  ShieldCheck,
-  User as UserIcon,
   Truck,
   ChefHat,
   ChevronRight,
-  LogIn,
 } from 'lucide-react';
-import { OrderStatus } from '../../types';
+import { Order, OrderStatus } from '../../types';
+import { CourierContactCard } from './CourierContactCard';
 
 interface OrderTrackerModalProps {
   initialOrderNumber?: string;
+  initialTrackingToken?: string;
 }
 
 export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
   initialOrderNumber,
+  initialTrackingToken,
 }) => {
   const {
-    orders,
     userOrders,
     currentUser,
     isAdmin,
-    canUserTrackOrder,
     isOrderOwnedByUser,
     formatMoney,
     navigateTo,
-    openAuthModal,
+    lookupOrder,
+    lastRealtimeEvent,
   } = useRestaurant();
 
   const [searchNumber, setSearchNumber] = useState(initialOrderNumber || '');
-  const [searched, setSearched] = useState(Boolean(initialOrderNumber));
+  const [trackingToken, setTrackingToken] = useState(initialTrackingToken || '');
+  const [searched, setSearched] = useState(false);
+  const [matchedOrder, setMatchedOrder] = useState<Order | null>(null);
+  const [trackError, setTrackError] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const trackedOrderId = matchedOrder?.id;
+  const trackedOrderNumber = matchedOrder?.order_number;
 
-  const trimmedQuery = searchNumber.trim().toLowerCase();
-  const rawMatchedOrder = orders.find(
-    (o) => o.order_number.trim().toLowerCase() === trimmedQuery
-  );
+  React.useEffect(() => {
+    if (
+      !trackedOrderId
+      || !trackedOrderNumber
+      || lastRealtimeEvent?.data.resource !== 'order'
+      || lastRealtimeEvent.id !== trackedOrderId
+    ) return;
 
-  const isOrderAuthorized = rawMatchedOrder ? canUserTrackOrder(rawMatchedOrder) : false;
-  const isForeignOrder = rawMatchedOrder && !isOrderAuthorized;
-  const matchedOrder = isOrderAuthorized ? rawMatchedOrder : null;
+    let cancelled = false;
+    lookupOrder(trackedOrderNumber)
+      .then((order) => { if (!cancelled) setMatchedOrder(order); })
+      .catch(() => {
+        if (!cancelled) {
+          setMatchedOrder(null);
+          setTrackError('This order is no longer available.');
+        }
+      });
+    return () => { cancelled = true; };
+  }, [lastRealtimeEvent, lookupOrder, trackedOrderId, trackedOrderNumber]);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setSearched(true);
+    setMatchedOrder(null);
+    setTrackError(null);
+
+    if (!currentUser && !trackingToken.trim()) {
+      setTrackError('Enter the tracking token from your order confirmation.');
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      setMatchedOrder(
+        await lookupOrder(searchNumber.trim(), currentUser ? undefined : trackingToken.trim())
+      );
+    } catch {
+      setTrackError('We could not verify this order. Check the order number and tracking token.');
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const getStatusBadge = (status: OrderStatus) => {
@@ -77,7 +109,14 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
       case 'READY':
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-800 border border-purple-200">
-            <Truck className="w-3.5 h-3.5" /> Ready / Out
+            <Truck className="w-3.5 h-3.5" />
+            {matchedOrder?.order_type === 'DELIVERY' ? 'Ready for dispatch' : 'Ready for pickup'}
+          </span>
+        );
+      case 'OUT_FOR_DELIVERY':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-800 border border-purple-200">
+            <Truck className="w-3.5 h-3.5" /> Out for delivery
           </span>
         );
       case 'COMPLETED':
@@ -97,67 +136,6 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
     }
   };
 
-  // If user is not authenticated, prompt them to sign in because only users can track orders that belong to them
-  if (!currentUser) {
-    return (
-      <div id="order-tracker-container" className="min-h-screen bg-[#FFF8ED]/40 py-10 sm:py-16">
-        <div className="max-w-xl mx-auto px-4 sm:px-6 space-y-6">
-          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#E5E7EB] shadow-xs text-center space-y-5">
-            <div className="w-16 h-16 rounded-2xl bg-[#FFF8ED] border border-[#E5E7EB] flex items-center justify-center text-[#C8102E] mx-auto shadow-xs">
-              <Lock className="w-8 h-8" />
-            </div>
-
-            <div className="space-y-2">
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFF8ED] text-[#C8102E] border border-[#E5E7EB] text-xs font-semibold uppercase tracking-wider">
-                <ShieldCheck className="w-3.5 h-3.5" /> Protected Order Tracking
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827]">
-                Sign In to Track Your Orders
-              </h1>
-              <p className="text-sm text-[#475569] max-w-md mx-auto leading-relaxed">
-                To protect customer privacy and security, users can only track orders that belong to their own account. Please sign in or register to access real-time status and receipts.
-              </p>
-            </div>
-
-            <button
-              id="tracker-login-prompt-btn"
-              onClick={() => openAuthModal('login')}
-              className="w-full py-3.5 px-6 rounded-xl bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-sm transition-all shadow-md shadow-[#C8102E]/20 flex items-center justify-center gap-2 cursor-pointer min-h-[44px]"
-            >
-              <LogIn className="w-4 h-4" />
-              <span>Sign In / Register</span>
-            </button>
-
-            {/* Quick Demo Test Buttons */}
-            <div className="pt-4 border-t border-[#E5E7EB] text-left">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#475569] mb-2">
-                Quick 1-Click Evaluation Sign In:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <button
-                  type="button"
-                  onClick={() => openAuthModal('login')}
-                  className="p-3 rounded-xl bg-[#FFF8ED] border border-[#E5E7EB] text-left hover:border-[#C8102E]/40 transition cursor-pointer"
-                >
-                  <span className="font-bold text-[#111827] block">Customer: Adeola</span>
-                  <span className="text-[11px] text-[#475569]">adeola@example.com</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => openAuthModal('login')}
-                  className="p-3 rounded-xl bg-[#FFF8ED] border border-[#E5E7EB] text-left hover:border-[#C8102E]/40 transition cursor-pointer"
-                >
-                  <span className="font-bold text-[#111827] block">Admin: Muhammad</span>
-                  <span className="text-[11px] text-[#475569]">asmuhammad42@gmail.com</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div id="order-tracker-container" className="min-h-screen bg-[#FFF8ED]/40 py-10 sm:py-14">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-6">
@@ -170,29 +148,21 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827]">
               Track Your Order Status
             </h1>
-            <p className="text-sm text-[#475569] max-w-md mx-auto leading-relaxed">
+            {/* <p className="text-sm text-[#475569] max-w-md mx-auto leading-relaxed">
               Enter your unique Order Number (e.g. <span className="font-mono font-semibold text-[#111827]">ORD-XXXXXX-XXXXX</span>) to view real-time kitchen preparation and delivery progress.
-            </p>
+            </p> */}
 
             {/* User Security Badge */}
-            <div className="pt-2 flex items-center justify-center gap-2 flex-wrap text-xs text-[#475569]">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF8ED] border border-[#E5E7EB] text-[#111827] font-medium">
-                <UserIcon className="w-3.5 h-3.5 text-[#C8102E]" />
-                Signed in: <strong>{currentUser.name}</strong> ({currentUser.email})
-              </span>
-              {isAdmin ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFF8ED] border border-[#D4AF37]/50 text-[#111827] font-bold text-[11px]">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#D4AF37]" /> Staff Admin Oversight
+            {currentUser && (
+              <div className="pt-2 flex items-center justify-center gap-2 flex-wrap text-xs text-[#475569]">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#FFF8ED] drop-shadow-lg text-[#111827] font-medium">
+                  Signed in: <strong>{currentUser.full_name}</strong>
                 </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 font-medium text-[11px]">
-                  <Lock className="w-3 h-3 text-blue-600" /> Personal Orders Only
-                </span>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
-          <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
+          <form onSubmit={handleSearch} className="flex flex-col gap-2">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-[#9CA3AF] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -203,17 +173,36 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                 onChange={(e) => {
                   setSearchNumber(e.target.value);
                   setSearched(false);
+                  setMatchedOrder(null);
+                  setTrackError(null);
                 }}
                 placeholder="Enter ORD-XXXXXX-XXXXX..."
                 className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E5E7EB] text-sm font-mono bg-[#FFF8ED]/30 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#C8102E] focus:border-[#C8102E] text-[#111827] placeholder-[#9CA3AF] min-h-[44px]"
               />
             </div>
+            {!currentUser && (
+              <input
+                id="input-track-order-token"
+                type="password"
+                required
+                autoComplete="off"
+                value={trackingToken}
+                onChange={(e) => {
+                  setTrackingToken(e.target.value);
+                  setSearched(false);
+                  setTrackError(null);
+                }}
+                placeholder="Tracking token from your order confirmation"
+                className="w-full px-4 py-3 rounded-xl border border-[#E5E7EB] text-sm font-mono bg-[#FFF8ED]/30 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#C8102E] focus:border-[#C8102E] text-[#111827] placeholder-[#9CA3AF] min-h-[44px]"
+              />
+            )}
             <button
               id="btn-track-order-search"
               type="submit"
-              className="px-6 py-3 rounded-xl bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-xs uppercase tracking-wider transition-colors shrink-0 cursor-pointer min-h-[44px] flex items-center justify-center shadow-xs"
+              disabled={isSearching}
+              className="px-6 py-3 rounded-xl bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-xs uppercase tracking-wider transition-colors shrink-0 cursor-pointer min-h-[44px] flex items-center justify-center shadow-xs disabled:opacity-60"
             >
-              Track
+              {isSearching ? 'Checking…' : 'Track'}
             </button>
           </form>
 
@@ -239,6 +228,8 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                 </div>
                 <div>{getStatusBadge(matchedOrder.status)}</div>
               </div>
+
+              <CourierContactCard order={matchedOrder} />
 
               {/* Order Info Summary */}
               <div className="text-xs text-[#475569] grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-[#FFF8ED]/40 border border-[#E5E7EB]">
@@ -298,64 +289,29 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
 
               <button
                 id="btn-track-view-full-receipt"
-                onClick={() =>
-                  navigateTo({ type: 'order-success', orderNumber: matchedOrder.order_number })
-                }
+                onClick={() => navigateTo({
+                  type: 'order-success',
+                  orderNumber: matchedOrder.order_number,
+                  trackingToken: matchedOrder.tracking_token,
+                })}
                 className="w-full py-3.5 rounded-xl bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#C8102E]/20 min-h-[44px]"
               >
                 <span>View Full Receipt & Progress Timeline</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-          ) : isForeignOrder ? (
-            /* Foreign order access blocked */
-            <div
-              id="track-order-unauthorized-alert"
-              className="p-5 rounded-2xl bg-red-50 border border-red-200 text-[#EF4444] text-xs space-y-3"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-100 text-[#EF4444] flex items-center justify-center shrink-0">
-                  <ShieldAlert className="w-5 h-5" />
-                </div>
-                <div className="space-y-1 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-red-900 text-sm">
-                      Order Belongs to Another Customer
-                    </span>
-                    <span className="px-2 py-0.5 rounded bg-red-200 text-red-900 text-[10px] font-bold uppercase">
-                      Access Restricted
-                    </span>
-                  </div>
-                  <p className="text-red-800 leading-relaxed">
-                    You can only track orders placed from your own account. Order <code className="font-mono font-bold">{searchNumber}</code> is registered to a different customer and cannot be tracked from this account.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-red-200 flex flex-col sm:flex-row items-center justify-between gap-2">
-                <span className="text-red-700 text-[11px]">
-                  Logged in as: <strong>{currentUser.name}</strong> ({currentUser.email})
-                </span>
-                <button
-                  id="btn-unauthorized-view-my-orders"
-                  onClick={() => navigateTo({ type: 'my-orders' })}
-                  className="py-2 px-3.5 rounded-lg bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-xs transition cursor-pointer min-h-[36px]"
-                >
-                  View My Orders
-                </button>
-              </div>
-            </div>
-          ) : searched ? (
+          ) : searched && trackError ? (
             <div
               id="track-order-not-found-alert"
               className="p-4 rounded-2xl bg-[#FFF8ED] border border-[#E5E7EB] text-[#475569] text-xs flex items-center gap-3"
             >
               <AlertCircle className="w-5 h-5 text-[#9CA3AF] shrink-0" />
-              <span>No order found matching &quot;{searchNumber}&quot;. Please verify your order number and retry.</span>
+              <span>{trackError}</span>
             </div>
           ) : null}
 
           {/* User's Own Placed Orders quick list */}
+          {currentUser && (
           <div className="pt-6 border-t border-[#E5E7EB]">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-[#475569] flex items-center gap-1.5">
@@ -393,7 +349,7 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
               <div className="space-y-2">
                 {userOrders.slice(0, 5).map((o) => {
                   const isSelected =
-                    trimmedQuery === o.order_number.trim().toLowerCase();
+                    searchNumber.trim().toLowerCase() === o.order_number.trim().toLowerCase();
 
                   return (
                     <div
@@ -401,7 +357,9 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
                       id={`user-trackable-order-${o.order_number}`}
                       onClick={() => {
                         setSearchNumber(o.order_number);
-                        setSearched(true);
+                        setSearched(false);
+                        setMatchedOrder(null);
+                        setTrackError(null);
                       }}
                       className={`p-3.5 rounded-2xl border cursor-pointer flex items-center justify-between text-xs transition-all ${
                         isSelected
@@ -433,6 +391,7 @@ export const OrderTrackerModal: React.FC<OrderTrackerModalProps> = ({
               </div>
             )}
           </div>
+          )}
         </div>
       </div>
     </div>

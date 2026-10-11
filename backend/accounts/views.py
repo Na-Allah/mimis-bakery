@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from .serializers import RegisterSerializer, UserSerializer
+from .serializers import ProfileUpdateSerializer, RegisterSerializer, UserSerializer
 from .services.register import register_user
 
 
@@ -21,6 +21,8 @@ def csrf_view(request):
     return Response({"csrfToken": get_token(request)})
 
 
+
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def register_view(request):
@@ -29,12 +31,12 @@ def register_view(request):
 
     user = register_user(**serializer.validated_data)
 
-    # Create Django's authenticated session immediately after registration.
-    login(request, user)
-
+    # No login() here, so the user must sign in on the login screen.
     return Response(
         {
             "user": UserSerializer(user).data,
+            "detail": "Registration successful. Please log in.",
+            "next": "login",
         },
         status=status.HTTP_201_CREATED,
     )
@@ -46,7 +48,12 @@ def login_view(request):
     email = request.data.get("email")
     password = request.data.get("password")
 
-    if not email or not password:
+    if (
+        not isinstance(email, str)
+        or not email.strip()
+        or not isinstance(password, str)
+        or not password
+    ):
         return Response(
             {"detail": "Email and password are required."},
             status=status.HTTP_400_BAD_REQUEST,
@@ -80,7 +87,7 @@ def login_view(request):
     )
 
 
-@api_view(["GET"])
+@api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def current_user_view(request):
     """
@@ -88,10 +95,16 @@ def current_user_view(request):
     The user comes from request.user, which comes from the
     authenticated Django session.
     """
-    return Response(
-        UserSerializer(request.user).data,
-        status=status.HTTP_200_OK,
-    )
+    if request.method == "PATCH":
+        serializer = ProfileUpdateSerializer(
+            request.user,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+    return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
 
 
 @api_view(["POST"])

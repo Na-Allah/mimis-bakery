@@ -17,17 +17,26 @@ import {
 } from 'lucide-react';
 import { BrandLogo } from '../common/BrandLogo';
 
+const MIN_PASSWORD_LENGTH = 6;
+
 export const AuthModal: React.FC = () => {
   const {
     isAuthModalOpen,
     closeAuthModal,
     authModalTab,
     login,
+    forgotPassword,
     register,
   } = useRestaurant();
 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [showPassword, setShowPassword] = useState(false);
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotError, setForgotError] = useState('');
+  const [forgotMessage, setForgotMessage] = useState('');
+  const [isSendingResetLink, setIsSendingResetLink] = useState(false);
 
   // Sign In Form State
   const [loginEmail, setLoginEmail] = useState('');
@@ -41,6 +50,8 @@ export const AuthModal: React.FC = () => {
   const [regPhone, setRegPhone] = useState('');
   const [regAddress, setRegAddress] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [confirmRegPassword, setConfirmRegPassword] = useState('');
+  const [showConfirmRegPassword, setShowConfirmRegPassword] = useState(false);
   const [regError, setRegError] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
 
@@ -49,6 +60,10 @@ export const AuthModal: React.FC = () => {
       setActiveTab(authModalTab);
       setLoginError('');
       setRegError('');
+      setIsForgotPassword(false);
+      setForgotError('');
+      setForgotMessage('');
+      setForgotEmail(loginEmail);
     }
   }, [isAuthModalOpen, authModalTab]);
 
@@ -64,47 +79,84 @@ export const AuthModal: React.FC = () => {
 
   if (!isAuthModalOpen) return null;
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
+
+    if (!loginPassword) {
+      setLoginError('Please enter your password.');
+      return;
+    }
+
     setIsLoggingIn(true);
 
-    const result = login(loginEmail, loginPassword);
-    setIsLoggingIn(false);
-
-    if (!result.success) {
-      setLoginError(result.error || 'Invalid email or password.');
+    try {
+      const result = await login(loginEmail, loginPassword);
+      if (!result.success) {
+        setLoginError(result.error || 'Invalid email or password.');
+      }
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotError('');
+    setForgotMessage('');
+    setIsSendingResetLink(true);
+
+    const emailToUse = forgotEmail || loginEmail;
+    const result = await forgotPassword(emailToUse);
+
+    setIsSendingResetLink(false);
+
+    if (!result.success) {
+      setForgotError(result.error || 'Unable to send reset instructions.');
+      return;
+    }
+
+    setForgotMessage(
+      result.message ||
+        'If an account exists for this email, reset instructions have been sent.'
+    );
+    setForgotEmail(emailToUse);
+  };
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setRegError('');
 
-    if (regPassword.length < 6) {
-      setRegError('Password must be at least 6 characters long.');
+    if (regPassword.length < MIN_PASSWORD_LENGTH) {
+      setRegError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long.`);
+      return;
+    }
+
+    if (regPassword !== confirmRegPassword) {
+      setRegError('Passwords do not match.');
       return;
     }
 
     setIsRegistering(true);
-    const result = register({
-      name: regName,
-      email: regEmail,
-      phone: regPhone,
-      default_address: regAddress,
-      password: regPassword,
-    });
-    setIsRegistering(false);
-
-    if (!result.success) {
-      setRegError(result.error || 'Failed to create account.');
+    try {
+      const result = await register({
+        full_name: regName,
+        email: regEmail,
+        phone_number: regPhone,
+        delivery_address: regAddress,
+        password: regPassword,
+      });
+      if (result.success) {
+        setActiveTab('login');
+        setLoginEmail(regEmail);
+        setLoginPassword('');
+        setLoginError('Account created. Please sign in.');
+      } else {
+        setRegError(result.error || 'Failed to create account.');
+      }
+    } finally {
+      setIsRegistering(false);
     }
-  };
-
-  const quickFill = (email: string, pass: string) => {
-    setLoginEmail(email);
-    setLoginPassword(pass);
-    setLoginError('');
   };
 
   return (
@@ -186,132 +238,150 @@ export const AuthModal: React.FC = () => {
         {/* Modal Body / Scrollable Content */}
         <div className="p-5 overflow-y-auto space-y-4">
           {activeTab === 'login' ? (
-            /* --- SIGN IN FORM --- */
-            <form id="auth-login-form" onSubmit={handleLoginSubmit} className="space-y-4">
-              {loginError && (
-                <div
-                  id="auth-login-error"
-                  className="p-3 rounded-xl bg-red-50 border border-red-200 text-[#EF4444] text-xs flex items-start gap-2.5"
-                >
-                  <AlertCircle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
-                  <span>{loginError}</span>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-medium text-[#475569] mb-1.5" htmlFor="login-email">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                  <input
-                    id="login-email"
-                    type="email"
-                    required
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    placeholder="e.g. asmuhammad42@gmail.com"
-                    className="w-full pl-9 pr-3 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-[#475569] mb-1.5" htmlFor="login-password">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                  <input
-                    id="login-password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-9 pr-10 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#475569] cursor-pointer p-1"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                id="auth-login-submit-btn"
-                type="submit"
-                disabled={isLoggingIn}
-                className="w-full py-3 px-4 bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-sm rounded-xl transition shadow-md shadow-[#C8102E]/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 min-h-[44px]"
-              >
-                {isLoggingIn ? (
-                  <span>Signing in...</span>
-                ) : (
-                  <>
-                    <span>Sign In to Account</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
+            isForgotPassword ? (
+              <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                {forgotError && (
+                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-[#EF4444] text-xs flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
+                    <span>{forgotError}</span>
+                  </div>
                 )}
-              </button>
 
-              {/* Instant Test Accounts */}
-              <div className="pt-2 border-t border-[#E5E7EB]">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#475569] flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-[#D4AF37]" /> Quick Role Testing (1-Click)
-                  </span>
-                  <span className="text-[10px] text-[#9CA3AF]">Click to autofill</span>
+                {forgotMessage && (
+                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-start gap-2.5">
+                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span>{forgotMessage}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-medium text-[#475569] mb-1.5" htmlFor="login-forgot-email">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                    <input
+                      id="login-forgot-email"
+                      type="email"
+                      required
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="e.g. asmuhammad42@gmail.com"
+                      className="w-full pl-9 pr-3 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
+                    />
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  {/* Admin Demo Button */}
+                <div className="flex gap-2">
                   <button
-                    type="button"
-                    id="auth-demo-admin-btn"
-                    onClick={() => quickFill('asmuhammad42@gmail.com', 'admin123')}
-                    className="p-2.5 rounded-xl bg-[#FFF8ED] hover:bg-[#FFF8ED]/80 border border-[#D4AF37]/50 text-left transition group cursor-pointer"
+                    type="submit"
+                    disabled={isSendingResetLink}
+                    className="flex-1 py-2.5 px-4 bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-xs rounded-xl transition shadow-sm shadow-[#C8102E]/20 disabled:opacity-60 cursor-pointer"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-[#111827]">Muhammad</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#C8102E]/10 text-[#C8102E] font-bold uppercase">
-                        Admin
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-[#475569] truncate">
-                      asmuhammad42@gmail.com
-                    </div>
-                    <div className="text-[10px] text-[#C8102E] mt-1 flex items-center gap-1 font-medium">
-                      <ShieldCheck className="w-3 h-3" /> Unlocks Admin
-                    </div>
+                    {isSendingResetLink ? 'Sending...' : 'Send reset link'}
                   </button>
-
-                  {/* Customer Demo Button */}
                   <button
                     type="button"
-                    id="auth-demo-customer-btn"
-                    onClick={() => quickFill('adeola@example.com', 'customer123')}
-                    className="p-2.5 rounded-xl bg-white hover:bg-[#FFF8ED] border border-[#E5E7EB] text-left transition group cursor-pointer"
+                    onClick={() => {
+                      setIsForgotPassword(false);
+                      setForgotError('');
+                      setForgotMessage('');
+                    }}
+                    className="px-3 py-2.5 text-xs font-medium text-[#475569] hover:text-[#111827] cursor-pointer"
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-[#111827]">Adeola</span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#E5E7EB] text-[#475569] font-medium uppercase">
-                        Customer
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-[#475569] truncate">
-                      adeola@example.com
-                    </div>
-                    <div className="text-[10px] text-[#9CA3AF] mt-1 flex items-center gap-1">
-                      <UserIcon className="w-3 h-3" /> Customer Role
-                    </div>
+                    Back
                   </button>
                 </div>
-              </div>
-            </form>
+              </form>
+            ) : (
+              /* --- SIGN IN FORM --- */
+              <form id="auth-login-form" onSubmit={handleLoginSubmit} className="space-y-4">
+                {loginError && (
+                  <div
+                    id="auth-login-error"
+                    className="p-3 rounded-xl bg-red-50 border border-red-200 text-[#EF4444] text-xs flex items-start gap-2.5"
+                  >
+                    <AlertCircle className="w-4 h-4 text-[#EF4444] shrink-0 mt-0.5" />
+                    <span>{loginError}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-medium text-[#475569] mb-1.5" htmlFor="login-email">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                    <input
+                      id="login-email"
+                      type="email"
+                      required
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      placeholder="e.g. asmuhammad42@gmail.com"
+                      className="w-full pl-9 pr-3 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-[#475569] mb-1.5" htmlFor="login-password">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                    <input
+                      id="login-password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-10 py-2.5 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] focus:ring-1 focus:ring-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#475569] cursor-pointer p-1"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(loginEmail);
+                      setForgotError('');
+                      setForgotMessage('');
+                      setIsForgotPassword(true);
+                    }}
+                    className="text-xs font-medium text-[#C8102E] hover:text-[#A70D26] transition cursor-pointer"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
+                <button
+                  id="auth-login-submit-btn"
+                  type="submit"
+                  disabled={isLoggingIn}
+                  className="w-full py-3 px-4 bg-[#C8102E] hover:bg-[#A70D26] text-white font-semibold text-sm rounded-xl transition shadow-md shadow-[#C8102E]/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 min-h-[44px]"
+                >
+                  {isLoggingIn ? (
+                    <span>Signing in...</span>
+                  ) : (
+                    <>
+                      <span>Sign In to Account</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            )
           ) : (
             /* --- CREATE ACCOUNT FORM --- */
             <form id="auth-register-form" onSubmit={handleRegisterSubmit} className="space-y-3.5">
@@ -387,15 +457,51 @@ export const AuthModal: React.FC = () => {
                     <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
                     <input
                       id="reg-password"
-                      type={showPassword ? 'text' : 'password'}
+                      type={showRegPassword ? 'text' : 'password'}
                       required
-                      minLength={6}
+                      minLength={MIN_PASSWORD_LENGTH}
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
                       placeholder="Min 6 chars"
-                      className="w-full pl-9 pr-2 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
+                      className="w-full pl-9 pr-10 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowRegPassword(!showRegPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#475569] cursor-pointer p-1"
+                      aria-label={showRegPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-[#475569] mb-1" htmlFor="reg-confirm-password">
+                  Confirm Password *
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                  <input
+                    id="reg-confirm-password"
+                    type={showConfirmRegPassword ? 'text' : 'password'}
+                    required
+                    minLength={MIN_PASSWORD_LENGTH}
+                    value={confirmRegPassword}
+                    onChange={(e) => setConfirmRegPassword(e.target.value)}
+                    placeholder="Re-enter your password"
+                    autoComplete="new-password"
+                    className="w-full pl-9 pr-10 py-2 bg-white border border-[#E5E7EB] rounded-xl text-[#111827] text-sm focus:outline-none focus:border-[#C8102E] placeholder-[#9CA3AF] min-h-[44px]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmRegPassword(!showConfirmRegPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#475569] cursor-pointer p-1"
+                    aria-label={showConfirmRegPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  >
+                    {showConfirmRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 

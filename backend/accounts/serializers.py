@@ -5,6 +5,7 @@ from accounts.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    is_admin = serializers.BooleanField(read_only=True)
 
     class Meta :
         model = User
@@ -15,6 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "phone_number",
             "role",
+            "is_admin"
         )
 
 
@@ -57,6 +59,31 @@ class RegisterSerializer(serializers.ModelSerializer):
                 "A user with this phone number already exists."
             )
 
+        return value
+
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["full_name", "phone_number"]
+
+    def validate_full_name(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Enter your name.")
+        return value
+
+    def validate_phone_number(self, value):
+        value = User.normalize_phone_number(value)
+        validator = User._meta.get_field("phone_number").validators
+        for validate in validator:
+            validate(value)
+        if User.objects.exclude(pk=self.instance.pk).filter(phone_number=value).exists():
+            raise serializers.ValidationError("This phone number is already in use.")
         return value
 
 

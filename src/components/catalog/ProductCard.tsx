@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Product } from '../../types';
 import { useRestaurant } from '../../context/RestaurantContext';
 import { Plus, Eye } from 'lucide-react';
+import { getMediaUrl } from '../../utils/media';
 
 interface ProductCardProps {
   product: Product;
@@ -19,6 +20,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const cartItem = cart.find((i) => i.product_id === product.id);
   const currentQty = cartItem ? cartItem.quantity : 0;
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [product.image]);
+
+  const imageSrc = getMediaUrl(product.image);
 
   const category = categories.find((c) => c.id === product.category_id);
 
@@ -50,14 +58,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <div>
         {/* Product Image */}
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#FFF8ED]/50">
-          <img
-            src={product.image}
-            alt={product.name}
-            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-              !product.is_available ? 'grayscale contrast-75' : ''
-            }`}
-            loading="lazy"
-          />
+          {imageSrc && !imageFailed ? (
+            <img
+              src={imageSrc}
+              alt={product.name}
+              onError={() => setImageFailed(true)}
+              className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+                !product.is_available ? 'grayscale contrast-75' : ''
+              }`}
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-xs text-[#9CA3AF]">
+              Image unavailable
+            </div>
+          )}
 
           {/* Badging: Category & Availability */}
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">

@@ -31,15 +31,13 @@ export const AdminLoginForm: React.FC<AdminLoginFormProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setIsLoading(true);
 
-    setTimeout(() => {
-      const result = loginAdmin(email, password);
-      setIsLoading(false);
-
+    try {
+      const result = await loginAdmin(email, password);
       if (result.success) {
         if (onSuccess) {
           onSuccess();
@@ -49,13 +47,9 @@ export const AdminLoginForm: React.FC<AdminLoginFormProps> = ({
       } else {
         setErrorMessage(result.error || 'Authentication failed. Please check credentials.');
       }
-    }, 400);
-  };
-
-  const handleFillDemo = (demoEmail: string = 'asmuhammad42@gmail.com') => {
-    setEmail(demoEmail);
-    setPassword('admin123');
-    setErrorMessage(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const content = (
@@ -104,7 +98,7 @@ export const AdminLoginForm: React.FC<AdminLoginFormProps> = ({
             <span>Customer Account Active</span>
           </div>
           <p className="text-[#475569] leading-relaxed">
-            You are logged in as <strong className="text-[#111827]">{currentUser.name}</strong> ({currentUser.email}) with the role <span className="px-1.5 py-0.5 rounded bg-white border border-[#E5E7EB] text-[#475569] uppercase font-semibold text-[10px]">customer</span>. Customer accounts do not have administrator permissions.
+            You are logged in as <strong className="text-[#111827]">{currentUser.full_name}</strong> ({currentUser.email}) with the role <span className="px-1.5 py-0.5 rounded bg-white border border-[#E5E7EB] text-[#475569] uppercase font-semibold text-[10px]">customer</span>. Customer accounts do not have administrator permissions.
           </p>
           <p className="text-[#C8102E] text-[11px] font-medium">
             Please sign in with administrator credentials below to access this view.
@@ -190,45 +184,6 @@ export const AdminLoginForm: React.FC<AdminLoginFormProps> = ({
           )}
         </button>
       </form>
-
-      {/* Quick Fill Credentials Helper for Reviewer & Staff */}
-      <div className="mt-8 pt-6 border-t border-[#E5E7EB] space-y-3">
-        <span className="text-[11px] uppercase tracking-wider font-semibold text-[#475569] block text-center">
-          Demo Testing Credentials
-        </span>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <button
-            id="btn-fill-default-admin"
-            type="button"
-            onClick={() => handleFillDemo('admin@restaurant.com')}
-            className="p-2.5 rounded-xl bg-[#FFF8ED]/50 hover:bg-[#FFF8ED] border border-[#E5E7EB] hover:border-[#C8102E]/50 text-left transition-all group cursor-pointer"
-          >
-            <span className="text-[10px] text-[#C8102E] font-bold block">
-              Default Admin
-            </span>
-            <span className="text-[11px] text-[#111827] font-mono block truncate">
-              admin@restaurant.com
-            </span>
-          </button>
-
-          <button
-            id="btn-fill-user-admin"
-            type="button"
-            onClick={() => handleFillDemo('asmuhammad42@gmail.com')}
-            className="p-2.5 rounded-xl bg-[#FFF8ED]/50 hover:bg-[#FFF8ED] border border-[#E5E7EB] hover:border-[#C8102E]/50 text-left transition-all group cursor-pointer"
-          >
-            <span className="text-[10px] text-[#C8102E] font-bold block">
-              User Admin
-            </span>
-            <span className="text-[11px] text-[#111827] font-mono block truncate">
-              asmuhammad42...
-            </span>
-          </button>
-        </div>
-        <p className="text-[10px] text-center text-[#475569]">
-          Password: <code className="text-[#C8102E] font-mono font-semibold">admin123</code>
-        </p>
-      </div>
 
       {/* Back to store navigation (if page mode) */}
       {mode === 'page' && (

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
 import { X, Plus, Minus, ShoppingBag, Flame } from 'lucide-react';
+import { getMediaUrl } from '../../utils/media';
 
 export const ProductDetailModal: React.FC = () => {
   const {
@@ -44,7 +45,7 @@ export const ProductDetailModal: React.FC = () => {
         {/* Header Image */}
         <div className="relative aspect-[16/10] w-full bg-[#FFF8ED]/50 overflow-hidden">
           <img
-            src={product.image}
+            src={getMediaUrl(product.image)}
             alt={product.name}
             className="w-full h-full object-cover"
           />

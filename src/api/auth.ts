@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://10.133.29.175:8000/api";
+import { API_URL, getCsrfToken } from './clients';
 
 export interface RegisterPayload {
   full_name: string;
@@ -8,45 +8,16 @@ export interface RegisterPayload {
   password: string;
 }
 
-function getCookie(name: string): string | null {
-  const cookies = document.cookie.split(";");
-
-  for (const cookie of cookies) {
-    const [key, ...valueParts] = cookie.trim().split("=");
-
-    if (key === name) {
-      return decodeURIComponent(valueParts.join("="));
-    }
-  }
-
-  return null;
-}
-
 async function ensureCsrfToken(): Promise<string> {
-  const existingToken = getCookie("csrftoken");
-
-  if (existingToken) {
-    return existingToken;
-  }
-
-  const response = await fetch(`${API_BASE_URL}/auth/csrf/`, {
-    method: "GET",
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error("Unable to initialize authentication.");
-  }
-
-  const data = await response.json();
-
-  return data.csrfToken;
+  const token = await getCsrfToken();
+  if (!token) throw new Error("Unable to initialize authentication.");
+  return token;
 }
 
 export async function registerUser(payload: RegisterPayload) {
   const csrfToken = await ensureCsrfToken();
 
-  const response = await fetch(`${API_BASE_URL}/auth/register/`, {
+  const response = await fetch(`${API_URL}/auth/register/`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -72,7 +43,7 @@ export async function registerUser(payload: RegisterPayload) {
 export async function loginUser(email: string, password: string) {
   const csrfToken = await ensureCsrfToken();
 
-  const response = await fetch(`${API_BASE_URL}/auth/login/`, {
+  const response = await fetch(`${API_URL}/auth/login/`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -95,7 +66,7 @@ export async function loginUser(email: string, password: string) {
 }
 
 export async function getCurrentUser() {
-  const response = await fetch(`${API_BASE_URL}/auth/me/`, {
+  const response = await fetch(`${API_URL}/auth/me/`, {
     method: "GET",
     credentials: "include",
   });
@@ -113,24 +84,82 @@ export async function getCurrentUser() {
   return data;
 }
 
-export async function logoutUser() {
+export async function updateCurrentUserProfile(payload: {
+  full_name: string;
+  phone_number: string;
+}) {
   const csrfToken = await ensureCsrfToken();
-
-  const response = await fetch(`${API_BASE_URL}/auth/logout/`, {
-    method: "POST",
+  const response = await fetch(`${API_URL}/auth/me/`, {
+    method: "PATCH",
     credentials: "include",
     headers: {
+      "Content-Type": "application/json",
       "X-CSRFToken": csrfToken,
     },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(
+      data.detail ||
+        Object.values(data).flat().join(" ") ||
+        "Unable to update your profile."
+    );
+  }
+  return data;
+}
+
+export async function forgotPasswordUser(email: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  if (!normalizedEmail) {
+    throw new Error('Please enter your email address.');
+  }
+
+  const csrfToken = await ensureCsrfToken();
+
+  const response = await fetch(`${API_URL}/auth/forgot-password/`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+    },
+    body: JSON.stringify({ email: normalizedEmail }),
   });
 
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
+  const data = await response.json().catch(() => ({}));
 
+  if (!response.ok) {
     throw new Error(
-      data.detail || "Unable to log out."
+      data.detail ||
+        data.message ||
+        Object.values(data).flat().join(' ') ||
+        'Unable to send reset instructions.'
     );
   }
 
-  return true;
+  return data;
+}
+
+export const requestPasswordReset = forgotPasswordUser;
+
+export async function logoutUser() {
+  const token = await getCsrfToken();
+  const res = await fetch(`${API_URL}/auth/logout/`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'X-CSRFToken': token } : {}),
+    },
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(
+      data.detail ||
+        data.message ||
+        `Logout failed (HTTP ${res.status}).`
+    );
+  }
 }

@@ -1,7 +1,3 @@
-/**
- * Domain Models & Types for Restaurant Ordering Platform
- * Conforming strictly to spec.md
- */
 
 export type OrderType = 'PICKUP' | 'DELIVERY';
 
@@ -11,6 +7,7 @@ export type OrderStatus =
   | 'PREPARING'
   | 'READY'
   | 'COMPLETED'
+  | 'OUT_FOR_DELIVERY'
   | 'CANCELLED';
 
 export type WhatsAppStatus = 'PENDING' | 'SENT' | 'FAILED';
@@ -45,7 +42,7 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
-  price: number; // Stored as exact numeric value (treated as Decimal)
+  price: number;
   image: string;
   is_available: boolean;
   is_featured: boolean;
@@ -63,14 +60,14 @@ export interface OrderItem {
   id: string;
   order_id: string;
   product_id: string;
-  product_name: string; // Snapshotted at order creation
-  unit_price: number;   // Snapshotted at order creation
+  product_name: string;
+  unit_price: number;
   quantity: number;
   subtotal: number;
   created_at: string;
 }
 
-export type UserRole = 'CUSTOMER' | 'ADMIN';
+export type UserRole = 'CUSTOMER' | 'ADMIN' | 'COURIER';
 
 export interface User {
   id: string;
@@ -81,16 +78,25 @@ export interface User {
   delivery_address: string;
   created_at: string;
   last_login?: string;
+  is_admin: boolean;
 }
 
-export interface StoredUser extends User {
-  password_hash: string;
+export interface CourierOption {
+  id: string;
+  full_name: string;
+  phone_number: string;
+}
+
+export interface CourierContact {
+  name: string;
+  phone_number: string;
 }
 
 export interface Order {
   id: string;
-  order_number: string; // Format: ORD-YYMMDD-XXXXX
-  user_id?: string; // Associated user account if logged in
+  order_number: string;
+  tracking_token: string;
+  user_id?: string;
   customer_name: string;
   customer_phone: string;
   customer_email?: string;
@@ -106,6 +112,9 @@ export interface Order {
   created_at: string;
   updated_at: string;
   items: OrderItem[];
+  courier_id?: string | null;
+  courier_name?: string | null;
+  courier_contact?: CourierContact | null;
 }
 
 export interface NotificationLog {
@@ -147,7 +156,10 @@ export type ActiveView =
   | { type: 'product'; productSlug: string }
   | { type: 'cart' }
   | { type: 'checkout' }
-  | { type: 'order-success'; orderNumber: string }
-  | { type: 'track-order'; orderNumber?: string }
+  | { type: 'order-success'; orderNumber: string; trackingToken?: string }
+  | { type: 'order-status'; orderNumber: string }
+  | { type: 'profile' }
+  | { type: 'track-order'; orderNumber?: string; trackingToken?: string }
   | { type: 'my-orders' }
+  | { type: 'courier' }
   | { type: 'admin'; tab?: 'orders' | 'catalog' | 'notifications' | 'settings' };

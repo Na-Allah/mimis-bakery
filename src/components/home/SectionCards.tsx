@@ -1,10 +1,39 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRestaurant } from '../../context/RestaurantContext';
 import { Section } from '../../types';
 import { ArrowRight, Flame, Croissant, UtensilsCrossed } from 'lucide-react';
+import { getMediaUrl } from '../../utils/media';
 
 export const SectionCards: React.FC = () => {
   const { activeSections, categories, navigateTo } = useRestaurant();
+
+  const SectionImage: React.FC<{ image: string; name: string }> = ({ image, name }) => {
+    const [imageFailed, setImageFailed] = useState(false);
+
+    useEffect(() => {
+      setImageFailed(false);
+    }, [image]);
+
+    const imageSrc = getMediaUrl(image);
+
+    if (!imageSrc || imageFailed) {
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-[#FFF8ED] text-sm text-[#9CA3AF]">
+          Image unavailable
+        </div>
+      );
+    }
+
+    return (
+      <img
+        src={imageSrc}
+        alt={name}
+        onError={() => setImageFailed(true)}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+        loading="lazy"
+      />
+    );
+  };
 
   const getSectionIcon = (slug: string) => {
     switch (slug) {
@@ -48,11 +77,7 @@ export const SectionCards: React.FC = () => {
               >
                 {/* Image header with overlay */}
                 <div className="relative aspect-[16/10] overflow-hidden">
-                  <img
-                    src={section.image}
-                    alt={section.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+                  <SectionImage image={section.image} name={section.name} />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
                   <div className="absolute top-3.5 left-3.5">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider backdrop-blur-md bg-white/90 text-[#111827] border border-white/60 shadow-xs">
