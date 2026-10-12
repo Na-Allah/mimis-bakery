@@ -43,7 +43,7 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
 
     # --- Dynamic admin branding from SiteConfiguration ---
     def _brand_admin_site():
-    original_each_context = admin.site.each_context
+        original_each_context = admin.site.each_context
 
         def branded_each_context(request):
             context = original_each_context(request)
