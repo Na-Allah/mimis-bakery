@@ -197,3 +197,5 @@ LOGGING = {
         "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
     },
 }
+
+CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}

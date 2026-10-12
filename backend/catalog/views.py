@@ -15,7 +15,7 @@ class MenuView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        if request.user.is_admin:
+        if getattr(request.user, "is_admin", False):
             sections = Section.objects.all()
             categories = Category.objects.all()
             products = Product.objects.all()
@@ -61,7 +61,7 @@ class ProductManageView(generics.GenericAPIView):
 
 
 class SectionManageView(generics.GenericAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     serializer_class = SectionSerializer
 
@@ -88,7 +88,7 @@ class SectionManageView(generics.GenericAPIView):
 
 
 class CategoryManageView(generics.GenericAPIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     serializer_class = CategorySerializer
 
