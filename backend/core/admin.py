@@ -42,18 +42,21 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
         return False
 
     # --- Dynamic admin branding from SiteConfiguration ---
-    _original_each_context = admin.site.each_context
+    def _brand_admin_site():
+    original_each_context = admin.site.each_context
 
-    def _branded_each_context(request):
-        context = _original_each_context(request)
-        try:
-            name = SiteConfiguration.load().restaurant_name
-        except Exception:
-            # table may not exist yet (before first migrate)
-            name = "Restaurant"
-        context["site_header"] = name
-        context["site_title"] = f"{name} Admin"
-        return context
+        def branded_each_context(request):
+            context = original_each_context(request)
+            try:
+                name = SiteConfiguration.load().restaurant_name
+            except Exception:
+                name = "Restaurant"
+            context["site_header"] = name
+            context["site_title"] = f"{name} Admin"
+            return context
 
-    admin.site.each_context = _branded_each_context
-    admin.site.index_title = "Manage your restaurant"
+        admin.site.each_context = branded_each_context
+        admin.site.index_title = "Manage your restaurant"
+
+
+    _brand_admin_site()
