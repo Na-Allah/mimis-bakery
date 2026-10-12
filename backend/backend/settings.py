@@ -3,6 +3,7 @@
 from pathlib import Path
 from urllib.parse import urlsplit
 import os,dj_database_url
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +27,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
+    'cloudinary',
     'django.contrib.staticfiles',
     'channels',
     'rest_framework',
@@ -129,10 +132,16 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
-}
+ STORAGES = {
+       "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},
+       "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+   }
+
+ CLOUDINARY_STORAGE = {
+       "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
+       "API_KEY": os.environ.get("CLOUDINARY_API_KEY"),
+       "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
+   }
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -199,3 +208,9 @@ LOGGING = {
 }
 
 CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+
+
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "idempotency-key",
+]
